@@ -216,8 +216,9 @@ impl Tool for Inventory {
 }
 ```
 
-Use `.tool(Inventory)` before `.build()`. Tools execute inside the native agent
-loop and pass through fx's existing admission policy. Mutable tools default to
+Use `.tool(Inventory)` before `.build()`. Tools execute inside the native root
+turn and pass through fx's existing admission policy. Native subagents currently
+retain fx's built-in tool set. Mutable tools default to
 requiring approval; the default SDK handler declines unresolved permission
 requests. Configure `ClientHandler` to integrate application approvals. Use
 `.native_tools(false)` to expose only application tools.
