@@ -96,3 +96,77 @@ async fn listener_refuses_non_loopback_bind() {
     assert!(harness.listen("0.0.0.0:0".parse().unwrap()).await.is_err());
     harness.shutdown().await.unwrap();
 }
+
+struct ApprovedTool;
+impl harnel::tool::Tool for ApprovedTool {
+    fn spec(&self) -> harnel::tool::ToolSpec {
+        harnel::tool::ToolSpec {
+            name: "approved_action".into(),
+            description: "Perform an action after host approval".into(),
+            parameters: json!({"type":"object"}),
+            read_only: false,
+        }
+    }
+    fn execute(
+        &self,
+        _: harnel::tool::ToolCall,
+    ) -> harnel::tool::BoxFuture<'_, harnel::Result<harnel::tool::ToolOutput>> {
+        Box::pin(async { Ok(harnel::tool::ToolOutput::text("approved action completed")) })
+    }
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn acp_permission_returns_to_turn_origin_and_rust_tool_stays_in_host() {
+    tokio::time::timeout(Duration::from_secs(30), async {
+        let model = support::Model::start(|n, body| {
+            if n == 0 {
+                support::tool("approved_action", json!({}))
+            } else {
+                assert!(body["input"].to_string().contains("approved action completed"));
+                support::text("approved")
+            }
+        }).await;
+        let root = tempfile::tempdir().unwrap();
+        let harness = Harness::builder(root.path()).native_tools(false).tool(ApprovedTool)
+            .env("FX_PERMISSION_MODE", "ask").model("openai/gpt-5")
+            .base_url(&model.url).api_key("fixture-key").build().await.unwrap();
+        let session = harness.session().await.unwrap();
+        let listener = harness.listen("127.0.0.1:0".parse().unwrap()).await.unwrap();
+        let mut observer = Client::connect(listener.local_addr()).await;
+        let mut origin = Client::connect(listener.local_addr()).await;
+        observer.initialize().await;
+        origin.initialize().await;
+        origin.send(json!({"jsonrpc":"2.0","id":20,"method":"session/prompt","params":{
+            "sessionId":session.id(),"prompt":[{"type":"text","text":"Perform approved_action"}]
+        }})).await;
+        let mut approvals = 0;
+        loop {
+            let mut line = String::new();
+            assert!(origin.read.read_line(&mut line).await.unwrap() > 0);
+            let message: Value = serde_json::from_str(&line).unwrap();
+            if message["method"] == "session/request_permission" {
+                approvals += 1;
+                assert_eq!(message["params"]["sessionId"], session.id());
+                origin.send(json!({"jsonrpc":"2.0","id":message["id"],"result":{
+                    "outcome":{"outcome":"selected","optionId":"allow_once"}
+                }})).await;
+            } else if message["id"] == 20 {
+                assert_eq!(message["result"]["stopReason"], "end_turn");
+                break;
+            } else {
+                assert!(message.get("id").is_none(), "unexpected outbound request: {message}");
+            }
+        }
+        assert_eq!(approvals, 1);
+        observer.send(json!({"jsonrpc":"2.0","id":30,"method":"fx/turn/status","params":{"sessionId":session.id()}})).await;
+        loop {
+            let mut line = String::new();
+            assert!(observer.read.read_line(&mut line).await.unwrap() > 0);
+            let message: Value = serde_json::from_str(&line).unwrap();
+            assert!(message.get("id").is_none() || message["id"] == 30, "request leaked to observer: {message}");
+            if message["id"] == 30 { break; }
+        }
+        listener.shutdown().await.unwrap();
+        harness.shutdown().await.unwrap();
+    }).await.expect("ACP permission routing timed out");
+}

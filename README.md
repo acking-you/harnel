@@ -32,7 +32,7 @@ Source builds require Rust 1.85 or newer, Zig **0.16.0**, and the platform C
 linker. Linux GNU and macOS are supported on x86_64 and aarch64. Cargo builds
 and statically links fx; running an application does not require Zig, an
 installed fx executable, Node.js, or a separate agent service. Python 3 is used
-only by the local OAuth test fixture.
+only for verification and source packaging.
 
 The SQLite comparison describes the product direction: explicit ownership, an
 embedded deployment model, and a small integration surface. It is not a claim
@@ -275,6 +275,12 @@ They cover model streaming, independent credentials, Rust tools, native shell
 execution, shared ACP/SDK sessions, cancellation, BYOK persistence, and Codex/Grok
 OAuth. The CI matrix runs on Linux and macOS for both supported architectures.
 The fx feature branch also runs its own Full CI.
+
+Before a native source release, run `python3 scripts/bundle-native.py` and
+`cargo package -p harnel-sys --allow-dirty`. The generated package includes fx
+source and its exact revision and verifies from an extracted directory. This
+does not publish either crate; the public `harnel` package can be published only
+after its matching `harnel-sys` version is available in the registry.
 
 The workspace separates the safe SDK (`crates/harnel`), native ownership/build
 boundary (`crates/harnel-sys`), and the independently versioned engine

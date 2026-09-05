@@ -12,6 +12,21 @@ use std::{
 };
 
 struct Lookup(Arc<AtomicUsize>);
+
+struct OversizedReply;
+impl Tool for OversizedReply {
+    fn spec(&self) -> ToolSpec {
+        ToolSpec {
+            name: "oversized_reply".into(),
+            description: "Produce an oversized fixture result".into(),
+            parameters: json!({"type":"object"}),
+            read_only: true,
+        }
+    }
+    fn execute(&self, _: ToolCall) -> BoxFuture<'_, Result<ToolOutput>> {
+        Box::pin(async { Ok(ToolOutput::text("x".repeat(1024 * 1024 + 1))) })
+    }
+}
 impl Tool for Lookup {
     fn spec(&self) -> ToolSpec {
         ToolSpec {
@@ -134,4 +149,45 @@ async fn native_shell_executes_without_an_fx_process() {
     })
     .await
     .expect("native shell turn timed out");
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn oversized_host_result_settles_the_turn_instead_of_hanging() {
+    tokio::time::timeout(Duration::from_secs(30), async {
+        let model = support::Model::start(|n, body| {
+            if n == 0 {
+                support::tool("oversized_reply", json!({}))
+            } else {
+                assert!(body["input"].as_array().unwrap().iter().any(|item| {
+                    item["type"] == "function_call_output"
+                        && item["output"]
+                            .to_string()
+                            .contains("Host tool request failed")
+                }));
+                support::text("The host result exceeded its limit.")
+            }
+        })
+        .await;
+        let root = tempfile::tempdir().unwrap();
+        let harness = Harness::builder(root.path())
+            .native_tools(false)
+            .tool(OversizedReply)
+            .model("openai/gpt-5")
+            .base_url(&model.url)
+            .api_key("fixture-key")
+            .build()
+            .await
+            .unwrap();
+        let answer = harness
+            .session()
+            .await
+            .unwrap()
+            .ask("Call oversized_reply")
+            .await
+            .unwrap();
+        assert_eq!(answer.text, "The host result exceeded its limit.");
+        harness.shutdown().await.unwrap();
+    })
+    .await
+    .expect("oversized tool result hung the turn");
 }

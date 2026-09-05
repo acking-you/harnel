@@ -144,7 +144,15 @@ async fn run() -> Result<()> {
             None
         };
         let result = if stdio || listener.is_none() {
-            tokio::select! { result = harness.serve_stdio() => result, result = tokio::signal::ctrl_c() => result.map_err(Error::from) }
+            tokio::select! {
+                result = harness.serve_stdio() => {
+                    if listener.is_some() {
+                        if let Err(error) = result { eprintln!("stdio attachment closed: {error}"); }
+                        tokio::signal::ctrl_c().await.map_err(Error::from)
+                    } else { result }
+                },
+                result = tokio::signal::ctrl_c() => result.map_err(Error::from),
+            }
         } else {
             tokio::signal::ctrl_c().await.map_err(Error::from)
         };
