@@ -170,3 +170,54 @@ async fn acp_permission_returns_to_turn_origin_and_rust_tool_stays_in_host() {
         harness.shutdown().await.unwrap();
     }).await.expect("ACP permission routing timed out");
 }
+
+struct PausedTool(std::sync::Arc<tokio::sync::Notify>);
+impl harnel::tool::Tool for PausedTool {
+    fn spec(&self) -> harnel::tool::ToolSpec {
+        harnel::tool::ToolSpec {
+            name: "pause_for_cancel".into(),
+            description: "Wait until the turn is cancelled".into(),
+            parameters: json!({"type":"object"}),
+            read_only: true,
+        }
+    }
+    fn execute(
+        &self,
+        _: harnel::tool::ToolCall,
+    ) -> harnel::tool::BoxFuture<'_, harnel::Result<harnel::tool::ToolOutput>> {
+        Box::pin(async move {
+            self.0.notify_one();
+            std::future::pending().await
+        })
+    }
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn acp_cancels_shared_turn_then_sdk_continues_after_disconnect() {
+    tokio::time::timeout(Duration::from_secs(30), async {
+        let model = support::Model::start(|n, _| {
+            if n == 0 { support::tool("pause_for_cancel", json!({})) }
+            else { support::text("SDK resumed after ACP cancellation") }
+        }).await;
+        let started = std::sync::Arc::new(tokio::sync::Notify::new());
+        let root = tempfile::tempdir().unwrap();
+        let harness = Harness::builder(root.path()).native_tools(false).tool(PausedTool(started.clone()))
+            .model("openai/gpt-5").base_url(&model.url).api_key("fixture-key").build().await.unwrap();
+        let session = harness.session().await.unwrap();
+        let mut events = harness.subscribe();
+        let listener = harness.listen("127.0.0.1:0".parse().unwrap()).await.unwrap();
+        let mut client = Client::connect(listener.local_addr()).await;
+        client.initialize().await;
+        client.send(json!({"jsonrpc":"2.0","id":20,"method":"session/prompt","params":{
+            "sessionId":session.id(),"prompt":[{"type":"text","text":"Call pause_for_cancel"}]
+        }})).await;
+        started.notified().await;
+        assert_eq!(events.recv().await.unwrap().params["sessionId"], session.id());
+        client.send(json!({"jsonrpc":"2.0","method":"session/cancel","params":{"sessionId":session.id()}})).await;
+        assert_eq!(client.reply(json!(20)).await["result"]["stopReason"], "cancelled");
+        drop(client);
+        assert_eq!(session.ask("Continue through the SDK").await.unwrap().text, "SDK resumed after ACP cancellation");
+        listener.shutdown().await.unwrap();
+        harness.shutdown().await.unwrap();
+    }).await.expect("shared cancellation timed out");
+}
