@@ -1,0 +1,23 @@
+[package]
+name = "harnel"
+description = "A small, embeddable agent harness with shared Rust SDK and ACP control"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+readme = "../../README.md"
+keywords = ["agent", "harness", "acp", "llm", "sdk"]
+categories = ["api-bindings", "development-tools"]
+
+[dependencies]
+harnel-sys = { version = "0.1.0", path = "../harnel-sys" }
+serde.workspace = true
+serde_json.workspace = true
+tokio.workspace = true
+thiserror.workspace = true
+tempfile.workspace = true
+
+[lints]
+workspace = true
+
