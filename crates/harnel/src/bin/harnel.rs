@@ -148,13 +148,13 @@ async fn run() -> Result<()> {
                 result = harness.serve_stdio() => {
                     if listener.is_some() {
                         if let Err(error) = result { eprintln!("stdio attachment closed: {error}"); }
-                        tokio::signal::ctrl_c().await.map_err(Error::from)
+                        interrupt().await.map_err(Error::from)
                     } else { result }
                 },
-                result = tokio::signal::ctrl_c() => result.map_err(Error::from),
+                result = interrupt() => result.map_err(Error::from),
             }
         } else {
-            tokio::signal::ctrl_c().await.map_err(Error::from)
+            interrupt().await.map_err(Error::from)
         };
         if let Some(listener) = listener {
             listener.shutdown().await?;
@@ -177,7 +177,7 @@ async fn prompt_once(harness: &Harness, prompt: String) -> Result<()> {
                 while let Some(event) = events.try_recv()? { print_event(&event)?; }
                 break;
             },
-            result = tokio::signal::ctrl_c() => { result?; session.cancel()?; return Err(Error::Invalid("interrupted".into())); },
+            result = interrupt() => { result?; session.cancel()?; return Err(Error::Invalid("interrupted".into())); },
             event = events.recv() => {
                 let event = event?;
                 print_event(&event)?;
@@ -197,4 +197,17 @@ fn print_event(event: &harnel::Event) -> Result<()> {
         }
     }
     Ok(())
+}
+
+async fn interrupt() -> std::io::Result<()> {
+    #[cfg(windows)]
+    {
+        let mut ctrl_break = tokio::signal::windows::ctrl_break()?;
+        tokio::select! {
+            result = tokio::signal::ctrl_c() => result,
+            _ = ctrl_break.recv() => Ok(()),
+        }
+    }
+    #[cfg(not(windows))]
+    tokio::signal::ctrl_c().await
 }

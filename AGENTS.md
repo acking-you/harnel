@@ -52,6 +52,11 @@ Run focused tests while developing. Before reporting a feature as working:
 3. Run a real example or CLI interaction through the changed public API.
 4. Verify CI for the exact pushed revision on every supported target.
 
+The native CI matrix includes Linux GNU and macOS on x86_64/aarch64 and Windows
+x86_64 MSVC. Run the same SDK, OAuth, ACP, and CLI workflows on Windows. Keep
+process control and test fixtures portable; do not skip runtime tests merely
+because Unix signals, pipe polling, or command names differ.
+
 Test meaningful boundaries: native lifecycle, shared SDK/ACP state, concurrent
 requests, cancellation, host tools, provider controls, framing, and queue limits.
 Use deterministic local model/OAuth fixtures for CI. Keep credentialed live

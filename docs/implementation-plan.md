@@ -14,7 +14,7 @@ wrapper around an installed agent is not an embedded implementation.
    identity and initialization separate from session/turn state.
 4. Expose session, provider, OAuth, configuration, execution, and host-tool APIs.
 5. Exercise complete deterministic workflows, then run native CI on Linux and
-   macOS, for x86_64 and aarch64.
+   macOS for x86_64 and aarch64, and Windows x86_64 with MSVC.
 6. Document supported behavior and limitations, publish the Git repositories,
    and verify the exact revisions and CI outcomes.
 

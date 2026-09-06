@@ -19,10 +19,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, ubuntu-24.04-arm, macos-15-intel, macos-15]
+        os: [ubuntu-24.04, ubuntu-24.04-arm, macos-15-intel, macos-15, windows-2025]
     runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
     timeout-minutes: 45
     steps:
+      - name: Preserve native source line endings
+        if: runner.os == 'Windows'
+        run: git config --global core.autocrlf false
       - uses: actions/checkout@v4
         with:
           submodules: recursive
@@ -33,6 +39,9 @@ jobs:
         with:
           version: 0.16.0
       - uses: Swatinem/rust-cache@v2
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       - name: Formatting
         run: cargo fmt --all --check
       - name: Clippy
@@ -46,14 +55,14 @@ jobs:
       - name: Run CLI
         run: |
           cargo build --locked --bin harnel
-          python3 scripts/smoke-cli.py target/debug/harnel
+          python scripts/smoke-cli.py target/debug/harnel${{ runner.os == 'Windows' && '.exe' || '' }}
       - name: Verify bundled native source package
-        if: matrix.os == 'ubuntu-24.04'
+        if: matrix.os == 'ubuntu-24.04' || runner.os == 'Windows'
         run: |
-          python3 scripts/bundle-native.py
+          python scripts/bundle-native.py
           cargo package -p harnel-sys --allow-dirty --locked
       - name: Check minimum Rust version
-        if: matrix.os == 'ubuntu-24.04'
+        if: matrix.os == 'ubuntu-24.04' || runner.os == 'Windows'
         run: |
           rustup toolchain install 1.85.0 --profile minimal
           cargo +1.85.0 check --workspace --all-targets --locked
