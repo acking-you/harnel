@@ -1,5 +1,12 @@
 [workspace]
 members = ["crates/harnel", "crates/harnel-sys"]
+exclude = [
+    "crates/harnel-native-x86_64-unknown-linux-gnu",
+    "crates/harnel-native-aarch64-unknown-linux-gnu",
+    "crates/harnel-native-x86_64-apple-darwin",
+    "crates/harnel-native-aarch64-apple-darwin",
+    "crates/harnel-native-x86_64-pc-windows-msvc",
+]
 resolver = "3"
 
 [workspace.package]

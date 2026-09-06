@@ -17,6 +17,8 @@ written in English. Document actual behavior separately from planned work.
   Engine behavior belongs there, including the agent loop, tools, providers,
   authentication, compaction, and durable session semantics.
 - `examples` contains runnable applications, not alternate implementations.
+- `crates/harnel-native-*` own target-specific release payloads. They do not
+  compile fx or download artifacts in consumer builds.
 - Build and release automation belongs in `xtask` or `scripts`.
 
 Do not duplicate the agent loop in Rust, execute an installed fx binary as an
@@ -65,3 +67,16 @@ checks opt-in and never print credentials.
 Publish a submodule commit before pushing a parent gitlink that references it.
 Verify remote revisions after pushes. Do not publish to crates.io or claim a
 release without explicit authorization and a verified package build.
+
+## Native distribution
+
+Default consumer builds must link the pinned release archive without Zig,
+submodule initialization, or build-script network access. Keep release tag,
+revision, ABI, target, and checksums explicit in the release lock. Stage payloads
+through `scripts/prepare-native.py`; never commit generated library archives.
+
+Keep source builds explicit and test compiler provisioning independently.
+`HARNEL_OFFLINE` must prevent automatic compiler downloads. Do not mutate the
+host PATH or install compilers globally. Before publication, run
+`scripts/verify-packages.py` and the no-Zig native matrix on the exact revision.
+The registry dependency order is platform crates, harnel-sys, then harnel.

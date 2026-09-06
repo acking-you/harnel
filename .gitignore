@@ -3,3 +3,8 @@
 /crates/harnel-sys/native/
 *.crate
 .DS_Store
+
+/crates/harnel-native-*/native/
+/crates/harnel-native-*/target/
+/crates/harnel-native-*/Cargo.lock
+__pycache__/

@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "repository": "acking-you/fx",
+  "tag": "v0.0.9",
+  "revision": "c3c32ccc6782389ba94a0704d0402620e5ac5456",
+  "abi_version": 1,
+  "targets": {
+    "x86_64-unknown-linux-gnu": {
+      "archive_sha256": "3288828e42bbe006d40fb9c99e295627fdd041377e3625191748e45da8c99b04",
+      "library_sha256": "908e7edbfd9ad9042602b56e593b1706d4626876a7567d32187ec58ca56351cf"
+    },
+    "aarch64-unknown-linux-gnu": {
+      "archive_sha256": "25ace20c75ca6d773d43030fb3bdbe1682c0bcf51d7a7a23e8f84653892eb845",
+      "library_sha256": "7f3974004d2332ab6ebe1a056237c3c0b8386aa1c81c905ad97bfd383b528f18"
+    },
+    "x86_64-apple-darwin": {
+      "archive_sha256": "f0735d687e14a3c63c130ab9d1d8f50601700015f244268967830a662201ba96",
+      "library_sha256": "9f278278316997473783e378912b3c6ea282ccbfacb7dadeff624fc934fac0d5"
+    },
+    "aarch64-apple-darwin": {
+      "archive_sha256": "7eb346289e3529d7ea100b385795dde3620918a635be80466a59d581562b984d",
+      "library_sha256": "29bcdd81467f60cadbdae26ea7cfa00f1b75871ae9478316d855f4b5fbb85187"
+    },
+    "x86_64-pc-windows-msvc": {
+      "archive_sha256": "f1d5c7148dba09c60e9226b082324f05a6071494b630e7b51bbc3db32a5cca23",
+      "library_sha256": "450458584dea27a44c34b3b9fc1f9c50a1e468e4589c3106c63a696b710a518c"
+    }
+  }
+}
