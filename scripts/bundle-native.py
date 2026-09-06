@@ -20,7 +20,7 @@ if destination.exists():
     sys.exit(f"Bundle already exists at {destination}; remove that generated directory before restaging.")
 
 revision = git("rev-parse", "HEAD").decode().strip()
-files = git("ls-files", "-z", "src", "include", "build.zig", "build.zig.zon", "LICENSE").decode().split("\0")
+files = git("ls-files", "-z", "src", "include", "build.zig", "build.zig.zon", "LICENSE", "THIRD_PARTY_NOTICES.md").decode().split("\0")
 destination.mkdir(parents=True)
 try:
     for name in filter(None, files):

@@ -28,41 +28,54 @@ runtime integration, Rust SDK, ACP transports, and deterministic integration
 tests. It has **not been published to crates.io**. Public APIs may change before
 the first release.
 
-Source builds require Rust 1.85 or newer, Zig **0.16.0**, and the platform C
-linker. Linux GNU and macOS are supported on x86_64 and aarch64; Windows 10 or
-newer is supported on x86_64 with the MSVC Rust toolchain. Windows source builds
-require Visual Studio Build Tools with the C++ tools and Windows SDK. Cargo builds
-and statically links fx; running an application does not require Zig, an
-installed fx executable, Node.js, or a separate agent service. Python 3 is used
-only for verification and source packaging.
+Default builds require Rust 1.85 or newer and the platform linker. They use
+precompiled static libraries from **fx v0.0.8**, selected by Cargo's target.
+No Zig compiler, fx executable, or build-time download script is needed by a
+packaged dependency. Cargo downloads and caches the platform crate along with
+ordinary dependencies; after dependencies are prepared, builds can run offline.
 
-[`harnel-sys/build.rs`](crates/harnel-sys/build.rs) runs automatically when Cargo
-builds the dependency. It compiles the bundled fx source into a static library
-and links it into your application. You do not build fx separately. Packaged
-crates include the pinned native sources, so consumers will not need Git or a
-submodule checkout. Zig is currently a build prerequisite; automatic compiler
-provisioning or prebuilt native artifacts are not implemented yet.
+Supported release targets are Linux GNU on x86_64/aarch64 (glibc 2.28 or newer),
+macOS on x86_64/aarch64 (macOS 13 or newer), and Windows x86_64 MSVC (Windows 10
+or newer, dynamic MSVC CRT). Windows requires the normal Rust MSVC linker and
+Windows SDK. Libraries use baseline CPUs and stripped ReleaseSafe code.
+Running an application requires neither Zig nor a separate agent service.
 
-On Windows, use PowerShell or a developer terminal. Git Bash is recommended for
+The native release lock records the fx revision, ABI, and archive/library
+checksums. Platform crates contain the original release library, C header,
+manifest, and license notices. Build scripts validate the target, ABI, revision,
+and checksums before linking. The release library is embedded in the final
+application; it is not loaded from a separately installed fx service.
+
+Source builds are an explicit option. They compile the submodule in a checkout,
+or the bundled source in a packaged crate. They use Zig **0.16.0**, automatically
+obtaining the pinned, checksum-verified compiler when it is not already
+available. Downloads and compiler files stay in Cargo's build output directory.
+Set `ZIG` to use an existing compiler, or `HARNEL_OFFLINE=1` to prohibit compiler
+downloads. Python 3 is used only for repository preparation and verification.
+
+On Windows, use PowerShell or a developer terminal, and use `python` in place
+of `python3` in the repository commands below. Git Bash is recommended for
 the native shell tools; fx also discovers installed PowerShell and cmd shells.
 The CLI accepts both Ctrl-C and Ctrl-Break for graceful shutdown.
 
 The SQLite comparison describes the product direction: explicit ownership, an
 embedded deployment model, and a small integration surface. It is not a claim
-of SQLite-equivalent binary size, storage guarantees, or maturity. Native
-distribution and size optimization remain work for the first crates.io release.
+of SQLite-equivalent binary size, storage guarantees, or maturity. Package
+publication and further size optimization remain work for the first crates.io
+release.
 
 ## Build and try it
 
 ```sh
-git clone --recurse-submodules https://github.com/acking-you/harnel.git
+git clone https://github.com/acking-you/harnel.git
 cd harnel
+python3 scripts/prepare-native.py
 cargo build --release
 cargo run --bin harnel -- --help
 ```
 
-For an existing checkout, run `git submodule update --init --recursive` first.
-Set `ZIG` to an absolute executable path when Zig is not on `PATH`.
+For an existing checkout, run `python3 scripts/prepare-native.py` after updating
+to a different native release. Default builds do not need the fx submodule.
 
 ```sh
 export MY_MODEL_KEY='your-key'
@@ -79,7 +92,7 @@ your provider.
 
 ## Embed in Rust
 
-Until publication, use the local crate from a recursive checkout:
+Until publication, use the local crate after preparing the native release above:
 
 ```toml
 [dependencies]
@@ -257,6 +270,30 @@ but does not replace application validation. Cancelling a turn drops outstanding
 host futures. Host callbacks must not detach untracked work or block the Tokio
 executor. Built-in executor names cannot be replaced by application tools.
 
+## Native build options
+
+Applications will depend on `harnel`; the five platform crates are internal
+implementation details. Until crates.io publication, a repository checkout
+needs `python3 scripts/prepare-native.py` once to stage the pinned release asset.
+Use `--target <rust-target>` when preparing a different compilation target.
+This preparation step belongs to repository development and package assembly;
+it is not required by consumers of the assembled crates.
+
+To build the pinned fx source instead:
+
+```sh
+git submodule update --init --recursive
+cargo build --no-default-features --features build-from-source
+```
+
+The source feature takes precedence if Cargo feature unification also enables
+`prebuilt`; disable default features to avoid fetching the platform package.
+`HARNEL_FX_SOURCE` selects an explicit fx source checkout when source building.
+`HARNEL_FX_LIB_DIR` selects an explicit developer-owned static library directory;
+use `--no-default-features` with this override to avoid the prebuilt dependency.
+Its target and C ABI must match the SDK. A library built for another target or
+CRT is not interchangeable, even when its exported C symbols have the same names.
+
 ## Control surface and boundaries
 
 | Capability | Rust interface |
@@ -281,8 +318,8 @@ and provider limitations. MCP is intentionally unsupported in this fork.
 Ordinary Unified Exec tools run directly in the embedded process. Legacy
 terminal features that re-execute fx require an explicitly supplied
 `FX_EMBEDDED_HELPER`; they never re-execute the embedding application. Custom
-storage engines, a stable Rust hook API, remote authenticated listeners, and
-prebuilt crates.io distribution are outside this initial version.
+storage engines, a stable Rust hook API, and remote authenticated listeners are
+outside this initial version.
 
 Queues and frames are bounded. A slow event consumer receives `Error::Lagged`;
 an ACP attachment that falls behind disconnects. Control calls time out after
@@ -303,17 +340,31 @@ cargo doc --workspace --no-deps --locked
 Integration tests use the actual native library and local protocol fixtures.
 They cover model streaming, independent credentials, Rust tools, native shell
 execution, shared ACP/SDK sessions, cancellation, BYOK persistence, and Codex/Grok
-OAuth. The CI matrix runs on Linux and macOS for both supported architectures,
-and on Windows x86_64 with MSVC. Every runner executes the same SDK integration
-tests and CLI workflow. Linux x86_64 and Windows also verify the packaged native
-source and minimum Rust version.
-The fx feature branch also runs its own Full CI.
+OAuth. The CI matrix runs the released native libraries on Linux and macOS for both
+supported architectures, and on Windows x86_64 MSVC, without installing Zig or
+checking out fx. Every runner executes the same SDK integration tests and CLI
+workflow. Separate Linux and Windows jobs verify automatic compiler provisioning
+and source builds. Linux x86_64 and Windows check the minimum Rust version.
+The fx feature branch also runs its own Full CI and packaged C ABI smoke tests.
 
-Before a native source release, run `python3 scripts/bundle-native.py` and
-`cargo package -p harnel-sys --allow-dirty`. The generated package includes fx
-source and its exact revision and verifies from an extracted directory. This
-does not publish either crate; the public `harnel` package can be published only
-after its matching `harnel-sys` version is available in the registry.
+Release preparation and package verification:
+
+```sh
+python3 scripts/prepare-native.py --all
+python3 scripts/bundle-native.py
+python3 scripts/verify-packages.py
+```
+
+The verifier assembles all seven `.crate` files, checks package builds through a
+local registry substitute, and runs an ordinary consumer and the packaged CLI
+offline with Zig disabled. It writes the verified artifacts to
+`target/verified-packages`. No command above publishes a crate. Publish the five
+platform crates before `harnel-sys`, then `harnel`, only after release verification.
+
+To update the engine release, update `crates/harnel-sys/native-release.json` with
+the release tag and its exact revision, advance `vendor/fx` to that revision,
+and run `python3 scripts/prepare-native.py --all --record`. Review the resulting
+checksums and repeat package and platform CI before publication.
 
 The workspace separates the safe SDK (`crates/harnel`), native ownership/build
 boundary (`crates/harnel-sys`), and the independently versioned engine

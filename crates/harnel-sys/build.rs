@@ -1,7 +1,26 @@
 use std::{env, path::PathBuf, process::Command};
+#[cfg(feature = "build-from-source")]
+#[path = "build/toolchain.rs"]
+mod toolchain;
+
+fn zig_compiler() -> std::ffi::OsString {
+    #[cfg(feature = "build-from-source")]
+    {
+        toolchain::resolve().into_os_string()
+    }
+    #[cfg(not(feature = "build-from-source"))]
+    {
+        unreachable!("source compiler requested without build-from-source")
+    }
+}
 
 fn main() {
-    for name in ["ZIG", "HARNEL_FX_SOURCE", "HARNEL_FX_LIB_DIR"] {
+    for name in [
+        "ZIG",
+        "HARNEL_FX_SOURCE",
+        "HARNEL_FX_LIB_DIR",
+        "HARNEL_OFFLINE",
+    ] {
         println!("cargo:rerun-if-env-changed={name}");
     }
     let target = env::var("TARGET").expect("Cargo target");
@@ -19,7 +38,7 @@ fn main() {
     };
     let library = if let Some(path) = env::var_os("HARNEL_FX_LIB_DIR") {
         PathBuf::from(path)
-    } else {
+    } else if cfg!(feature = "build-from-source") {
         let manifest = PathBuf::from(env::var_os("CARGO_MANIFEST_DIR").unwrap());
         let source = env::var_os("HARNEL_FX_SOURCE")
             .map(PathBuf::from)
@@ -67,7 +86,7 @@ fn main() {
             revision.len() == 40 && revision.bytes().all(|byte| byte.is_ascii_hexdigit()),
             "invalid fx source revision"
         );
-        let zig = env::var_os("ZIG").unwrap_or_else(|| "zig".into());
+        let zig = zig_compiler();
         let version = Command::new(&zig)
             .arg("version")
             .output()
@@ -95,6 +114,26 @@ fn main() {
             .expect("start Zig build");
         assert!(status.success(), "Native fx build failed");
         prefix.join("lib")
+    } else if cfg!(feature = "prebuilt") {
+        let metadata = format!(
+            "DEP_HARNEL_NATIVE_{}",
+            target.replace('-', "_").to_uppercase()
+        );
+        let expected: serde_json::Value = serde_json::from_str(include_str!("native-release.json"))
+            .expect("pinned native release manifest");
+        let revision = env::var(format!("{metadata}_REVISION"))
+            .expect("native package did not provide its revision");
+        assert_eq!(
+            expected["revision"].as_str(),
+            Some(revision.as_str()),
+            "native release revision mismatch"
+        );
+        PathBuf::from(
+            env::var_os(format!("{metadata}_LIB_DIR"))
+                .expect("native package did not provide its library directory"),
+        )
+    } else {
+        panic!("Enable prebuilt (the default) or build-from-source");
     };
     let archive = if target.ends_with("windows-msvc") {
         "fx_core.lib"
