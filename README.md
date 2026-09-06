@@ -23,10 +23,10 @@ belong here.
 
 ## Status and requirements
 
-This is an initial development version. The repository contains a working native
-runtime integration, Rust SDK, ACP transports, and deterministic integration
-tests. It has **not been published to crates.io**. Public APIs may change before
-the first release.
+Harnel 0.1.0 is the initial release of the native runtime integration, Rust SDK,
+ACP transports, and runnable examples. The API is early and may change in future
+0.x releases. Use `harnel = "0.1.0"` in a Rust application, or install the CLI
+with `cargo install harnel --locked`.
 
 Default builds require Rust 1.85 or newer and the platform linker. They use
 precompiled static libraries from **fx v0.0.9**, selected by Cargo's target.
@@ -60,9 +60,8 @@ The CLI accepts both Ctrl-C and Ctrl-Break for graceful shutdown.
 
 The SQLite comparison describes the product direction: explicit ownership, an
 embedded deployment model, and a small integration surface. It is not a claim
-of SQLite-equivalent binary size, storage guarantees, or maturity. Package
-publication and further size optimization remain work for the first crates.io
-release.
+of SQLite-equivalent binary size, storage guarantees, or maturity. Further size
+optimization remains part of the product direction.
 
 ## Build and try it
 
@@ -92,11 +91,11 @@ your provider.
 
 ## Embed in Rust
 
-Until publication, use the local crate after preparing the native release above:
+Add the crate to your application. No repository preparation is needed:
 
 ```toml
 [dependencies]
-harnel = { path = "../harnel/crates/harnel" }
+harnel = "0.1.0"
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 ```
 
@@ -130,7 +129,26 @@ methods or `Builder::env`.
 `ask` collects up to 8 MiB of assistant text. For streaming, subscribe before
 calling `session.prompt(...)` and consume `Events::recv()` concurrently. Events
 include text, reasoning, tool progress, permission-related updates, and session
-lifecycle notifications. See [the embedding example](crates/harnel/examples/embed.rs).
+lifecycle notifications. See the [streaming example](crates/harnel/examples/stream.rs).
+
+## Runnable examples
+
+The [examples guide](crates/harnel/examples/README.md) includes setup, expected
+behavior, lifecycle details, and PowerShell instructions for seven applications:
+
+| Application | Demonstrates |
+| --- | --- |
+| [Basic embedding](crates/harnel/examples/embed.rs) | Collect an answer with a small SDK integration |
+| [Streaming](crates/harnel/examples/stream.rs) | Incremental text, final event draining, Ctrl-C cancellation |
+| [Custom Rust tool](crates/harnel/examples/custom_tool.rs) | Validated application inventory lookup inside the native loop |
+| [Saved sessions](crates/harnel/examples/sessions.rs) | Resume a conversation in another process |
+| [Provider control](crates/harnel/examples/provider.rs) | Persist BYOK configuration and share it between SDK handles |
+| [Device authorization](crates/harnel/examples/oauth.rs) | Codex/Grok login from another device, expiration and cancellation |
+| [ACP service](crates/harnel/examples/acp.rs) | SDK-owned session shared over stdio and a listener |
+
+For a complete application, try [Harnel Notebook](examples/notebook/README.md).
+It depends on the crates.io version, reads real Markdown notes through a Rust
+tool, streams cited answers, and restores conversations after a process restart.
 
 ## ACP and SDK share live state
 
@@ -272,9 +290,9 @@ executor. Built-in executor names cannot be replaced by application tools.
 
 ## Native build options
 
-Applications will depend on `harnel`; the five platform crates are internal
-implementation details. Until crates.io publication, a repository checkout
-needs `python3 scripts/prepare-native.py` once to stage the pinned release asset.
+Applications depend on `harnel`; the five platform crates are internal
+implementation details. A repository checkout needs
+`python3 scripts/prepare-native.py` once to stage the pinned release asset.
 Use `--target <rust-target>` when preparing a different compilation target.
 This preparation step belongs to repository development and package assembly;
 it is not required by consumers of the assembled crates.
@@ -335,6 +353,8 @@ cargo fmt --all --check
 cargo clippy --workspace --all-targets --locked -- -D warnings
 cargo test --workspace --all-targets --locked
 cargo doc --workspace --no-deps --locked
+cargo build --examples --locked
+python3 scripts/smoke-examples.py --examples target/debug/examples
 ```
 
 Integration tests use the actual native library and local protocol fixtures.
@@ -343,7 +363,7 @@ execution, shared ACP/SDK sessions, cancellation, BYOK persistence, and Codex/Gr
 OAuth. The CI matrix runs the released native libraries on Linux and macOS for both
 supported architectures, and on Windows x86_64 MSVC, without installing Zig or
 checking out fx. Every runner executes the same SDK integration tests and CLI
-workflow. Separate Linux and Windows jobs verify automatic compiler provisioning
+workflow and runnable examples. Separate Linux and Windows jobs verify automatic compiler provisioning
 and source builds. Linux x86_64 and Windows check the minimum Rust version.
 The fx feature branch also runs its own Full CI and packaged C ABI smoke tests.
 
@@ -360,6 +380,10 @@ local registry substitute, and runs an ordinary consumer and the packaged CLI
 offline with Zig disabled. It writes the verified artifacts to
 `target/verified-packages`. No command above publishes a crate. Publish the five
 platform crates before `harnel-sys`, then `harnel`, only after release verification.
+After publishing, run `python3 scripts/verify-registry.py` to build and exercise
+a notebook copy with a fresh Cargo cache and actual crates.io dependencies.
+The manually dispatched **Published crate verification** workflow repeats this
+on all five release targets. No registry credentials are needed for that check.
 
 To update the engine release, update `crates/harnel-sys/native-release.json` with
 the release tag and its exact revision, advance `vendor/fx` to that revision,
