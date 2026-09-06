@@ -29,10 +29,16 @@ tests. It has **not been published to crates.io**. Public APIs may change before
 the first release.
 
 Source builds require Rust 1.85 or newer, Zig **0.16.0**, and the platform C
-linker. Linux GNU and macOS are supported on x86_64 and aarch64. Cargo builds
+linker. Linux GNU and macOS are supported on x86_64 and aarch64; Windows 10 or
+newer is supported on x86_64 with the MSVC Rust toolchain. Windows source builds
+require Visual Studio Build Tools with the C++ tools and Windows SDK. Cargo builds
 and statically links fx; running an application does not require Zig, an
 installed fx executable, Node.js, or a separate agent service. Python 3 is used
 only for verification and source packaging.
+
+On Windows, use PowerShell or a developer terminal. Git Bash is recommended for
+the native shell tools; fx also discovers installed PowerShell and cmd shells.
+The CLI accepts both Ctrl-C and Ctrl-Break for graceful shutdown.
 
 The SQLite comparison describes the product direction: explicit ownership, an
 embedded deployment model, and a small integration surface. It is not a claim
@@ -274,7 +280,10 @@ cargo doc --workspace --no-deps --locked
 Integration tests use the actual native library and local protocol fixtures.
 They cover model streaming, independent credentials, Rust tools, native shell
 execution, shared ACP/SDK sessions, cancellation, BYOK persistence, and Codex/Grok
-OAuth. The CI matrix runs on Linux and macOS for both supported architectures.
+OAuth. The CI matrix runs on Linux and macOS for both supported architectures,
+and on Windows x86_64 with MSVC. Every runner executes the same SDK integration
+tests and CLI workflow. Linux x86_64 and Windows also verify the packaged native
+source and minimum Rust version.
 The fx feature branch also runs its own Full CI.
 
 Before a native source release, run `python3 scripts/bundle-native.py` and

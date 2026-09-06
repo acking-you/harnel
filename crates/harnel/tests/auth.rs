@@ -10,9 +10,11 @@ struct OAuthFixture {
     process: Child,
     url: String,
 }
+const PYTHON: &str = if cfg!(windows) { "python" } else { "python3" };
+
 impl OAuthFixture {
     fn start() -> Self {
-        let mut process = Command::new("python3")
+        let mut process = Command::new(PYTHON)
             .arg(concat!(
                 env!("CARGO_MANIFEST_DIR"),
                 "/tests/fixtures/oauth_server.py"
@@ -31,7 +33,7 @@ impl OAuthFixture {
     }
     fn complete(&self, url: &str) {
         assert!(url.starts_with(&self.url));
-        let status = Command::new("python3")
+        let status = Command::new(PYTHON)
             .args([
                 "-c",
                 "import sys,urllib.request; urllib.request.urlopen(sys.argv[1],timeout=10).read()",

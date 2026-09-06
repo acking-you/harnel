@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 """Exercise the real CLI against local model and ACP transports."""
+import asyncio
 import json
 import os
 import pathlib
-import selectors
 import signal
-import socket
 import subprocess
 import sys
 import tempfile
@@ -35,24 +34,48 @@ class Model(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
 
-def request(write, read, number, method, params):
+async def request(write, read, number, method, params):
     write.write((json.dumps({"jsonrpc": "2.0", "id": number, "method": method, "params": params}) + "\n").encode())
-    write.flush()
+    await write.drain()
     while True:
-        selector = selectors.DefaultSelector()
-        try:
-            selector.register(read, selectors.EVENT_READ)
-            if not selector.select(15):
-                raise RuntimeError(f"timeout waiting for {method}")
-        finally:
-            selector.close()
-        line = read.readline()
+        line = await asyncio.wait_for(read.readline(), timeout=15)
         if not line:
             raise RuntimeError(f"EOF waiting for {method}")
         value = json.loads(line)
         if value.get("id") == number:
             assert "error" not in value, value
             return value["result"]
+
+
+async def acp_smoke(root):
+    options = {"creationflags": subprocess.CREATE_NEW_PROCESS_GROUP} if os.name == "nt" else {}
+    process = await asyncio.create_subprocess_exec(
+        binary, "acp", "--stdio", "--listen", "127.0.0.1:0", "--workspace", root,
+        stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE, limit=1024 * 1024, **options)
+    try:
+        startup = (await asyncio.wait_for(process.stderr.readline(), timeout=15)).decode().strip()
+        assert startup.startswith("ACP listening on "), startup
+        host, port = startup.removeprefix("ACP listening on ").rsplit(":", 1)
+        await request(process.stdin, process.stdout, 1, "initialize", {"protocolVersion": 1})
+        session = (await request(process.stdin, process.stdout, 2, "session/new", {}))["sessionId"]
+        read, write = await asyncio.wait_for(asyncio.open_connection(host, int(port)), timeout=15)
+        try:
+            await request(write, read, 1, "initialize", {"protocolVersion": 1})
+            assert (await request(write, read, 2, "fx/turn/status", {"sessionId": session}))["sessionId"] == session
+            process.stdin.close()
+            await process.stdin.wait_closed()
+            assert (await request(write, read, 3, "fx/turn/status", {"sessionId": session}))["state"] == "idle"
+        finally:
+            write.close()
+            await write.wait_closed()
+        process.send_signal(signal.CTRL_BREAK_EVENT if os.name == "nt" else signal.SIGINT)
+        assert await asyncio.wait_for(process.wait(), timeout=15) == 0
+        assert not await process.stderr.read()
+    finally:
+        if process.returncode is None:
+            process.kill()
+            await process.wait()
 
 
 with tempfile.TemporaryDirectory() as root:
@@ -73,25 +96,5 @@ with tempfile.TemporaryDirectory() as root:
         server.server_close()
         thread.join()
 
-    process = subprocess.Popen([binary, "acp", "--stdio", "--listen", "127.0.0.1:0", "--workspace", root],
-        stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, bufsize=0)
-    try:
-        startup = process.stderr.readline().decode().strip()
-        assert startup.startswith("ACP listening on "), startup
-        host, port = startup.removeprefix("ACP listening on ").rsplit(":", 1)
-        request(process.stdin, process.stdout, 1, "initialize", {"protocolVersion": 1})
-        session = request(process.stdin, process.stdout, 2, "session/new", {})["sessionId"]
-        with socket.create_connection((host, int(port)), timeout=15) as connection:
-            with connection.makefile("rwb", buffering=0) as stream:
-                request(stream, stream, 1, "initialize", {"protocolVersion": 1})
-                assert request(stream, stream, 2, "fx/turn/status", {"sessionId": session})["sessionId"] == session
-                process.stdin.close()
-                assert request(stream, stream, 3, "fx/turn/status", {"sessionId": session})["state"] == "idle"
-        process.send_signal(signal.SIGINT)
-        assert process.wait(timeout=15) == 0
-        assert not process.stderr.read()
-    finally:
-        if process.poll() is None:
-            process.kill()
-            process.wait()
+    asyncio.run(acp_smoke(root))
 print("CLI model turn, stdio/listener shared state, independent detach, and shutdown passed")

@@ -10,8 +10,11 @@ fn main() {
         "aarch64-unknown-linux-gnu" => "aarch64-linux-gnu",
         "x86_64-apple-darwin" => "x86_64-macos",
         "aarch64-apple-darwin" => "aarch64-macos",
+        "x86_64-pc-windows-msvc" => "x86_64-windows-msvc",
         _ => {
-            panic!("Harnel currently supports Linux GNU and macOS on x86_64/aarch64; got {target}")
+            panic!(
+                "Harnel supports Linux GNU/macOS on x86_64/aarch64 and Windows MSVC on x86_64; got {target}"
+            )
         }
     };
     let library = if let Some(path) = env::var_os("HARNEL_FX_LIB_DIR") {
@@ -93,19 +96,26 @@ fn main() {
         assert!(status.success(), "Native fx build failed");
         prefix.join("lib")
     };
+    let archive = if target.ends_with("windows-msvc") {
+        "fx_core.lib"
+    } else {
+        "libfx_core.a"
+    };
     assert!(
-        library.join("libfx_core.a").is_file(),
-        "libfx_core.a missing from {}",
+        library.join(archive).is_file(),
+        "{archive} missing from {}",
         library.display()
     );
-    println!(
-        "cargo:rerun-if-changed={}",
-        library.join("libfx_core.a").display()
-    );
+    println!("cargo:rerun-if-changed={}", library.join(archive).display());
     println!("cargo:rustc-link-search=native={}", library.display());
     println!("cargo:rustc-link-lib=static=fx_core");
     if target.contains("linux") {
         for lib in ["pthread", "dl", "m"] {
+            println!("cargo:rustc-link-lib={lib}");
+        }
+    } else if target.ends_with("windows-msvc") {
+        // A static archive does not propagate Zig's Windows import libraries.
+        for lib in ["kernel32", "ntdll", "ws2_32", "crypt32"] {
             println!("cargo:rustc-link-lib={lib}");
         }
     }

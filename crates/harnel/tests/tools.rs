@@ -105,7 +105,7 @@ async fn native_shell_executes_without_an_fx_process() {
             } else if n == 0 {
                 support::tool(
                     "exec_command",
-                    json!({"cmd":"printf harnel-native-shell","login":false}),
+                    json!({"cmd":"echo harnel-native-shell","login":false}),
                 )
             } else {
                 assert!(
@@ -132,7 +132,7 @@ async fn native_shell_executes_without_an_fx_process() {
             .unwrap();
         let session = harness.session().await.unwrap();
         session
-            .prompt("Print harnel-native-shell with printf")
+            .prompt("Print harnel-native-shell with echo")
             .await
             .unwrap();
         assert_eq!(
