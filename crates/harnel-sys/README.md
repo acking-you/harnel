@@ -3,7 +3,7 @@
 Native fx ownership and build integration for [Harnel](https://github.com/acking-you/harnel).
 Applications normally depend on `harnel` instead of this crate.
 
-Default builds statically link a pinned fx v0.0.8 release from a target-specific
+Default builds statically link a pinned fx v0.0.9 release from a target-specific
 platform crate. Linux GNU and macOS support x86_64/aarch64; Windows supports
 x86_64 MSVC. Consumers need their normal Rust linker and platform SDK, with no
 Zig installation or build-script network access. Platform packages validate

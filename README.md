@@ -29,7 +29,7 @@ tests. It has **not been published to crates.io**. Public APIs may change before
 the first release.
 
 Default builds require Rust 1.85 or newer and the platform linker. They use
-precompiled static libraries from **fx v0.0.8**, selected by Cargo's target.
+precompiled static libraries from **fx v0.0.9**, selected by Cargo's target.
 No Zig compiler, fx executable, or build-time download script is needed by a
 packaged dependency. Cargo downloads and caches the platform crate along with
 ordinary dependencies; after dependencies are prepared, builds can run offline.

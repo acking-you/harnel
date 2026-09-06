@@ -1,29 +1,29 @@
 {
   "schema_version": 1,
   "repository": "acking-you/fx",
-  "tag": "v0.0.8",
-  "revision": "5e4e2c3aad537fb2d412e2c058e6b2497b5e9d70",
+  "tag": "v0.0.9",
+  "revision": "c3c32ccc6782389ba94a0704d0402620e5ac5456",
   "abi_version": 1,
   "targets": {
     "x86_64-unknown-linux-gnu": {
-      "archive_sha256": "f17857b550ef6be8da090ad8f305ac45b4722552195fc9a28fb8af9ebef9be69",
-      "library_sha256": "ac55920db4e049a6331e3cb84d1486e4fced28d121b357b82bd1263ab8f94e67"
+      "archive_sha256": "3288828e42bbe006d40fb9c99e295627fdd041377e3625191748e45da8c99b04",
+      "library_sha256": "908e7edbfd9ad9042602b56e593b1706d4626876a7567d32187ec58ca56351cf"
     },
     "aarch64-unknown-linux-gnu": {
-      "archive_sha256": "79d899f06cb35518d3172ed2b2745ab02089e37024b9628b30f51d7e85b81e7b",
-      "library_sha256": "62b04b25aa95f37559f05abc8fcabf399a2ec06a89e2f1e8f36329dc3bd1d843"
+      "archive_sha256": "25ace20c75ca6d773d43030fb3bdbe1682c0bcf51d7a7a23e8f84653892eb845",
+      "library_sha256": "7f3974004d2332ab6ebe1a056237c3c0b8386aa1c81c905ad97bfd383b528f18"
     },
     "x86_64-apple-darwin": {
-      "archive_sha256": "025cd51ad407116ec8491573f5f67cd45ebb4789c15f9fdc2ae407a475432ff9",
-      "library_sha256": "e2a4ddf3169a74f88490c932d150447de4ca7a913c2ceb48a638f756eeb0f606"
+      "archive_sha256": "f0735d687e14a3c63c130ab9d1d8f50601700015f244268967830a662201ba96",
+      "library_sha256": "9f278278316997473783e378912b3c6ea282ccbfacb7dadeff624fc934fac0d5"
     },
     "aarch64-apple-darwin": {
-      "archive_sha256": "a0cc763580a19d828b5866ec35fdd5c6b6a8d534f180ba16ce51c30a4a170dbc",
-      "library_sha256": "c5d27e08a8e1e9939b846baa9829c31f2c3dee03168a8799d5bde9543b340f01"
+      "archive_sha256": "7eb346289e3529d7ea100b385795dde3620918a635be80466a59d581562b984d",
+      "library_sha256": "29bcdd81467f60cadbdae26ea7cfa00f1b75871ae9478316d855f4b5fbb85187"
     },
     "x86_64-pc-windows-msvc": {
-      "archive_sha256": "b191e1f750662ff693e94f92fa42a35012f6ebec24b7a56799f79f014568f655",
-      "library_sha256": "fcea67d297c362bb4a90498bbc5d4a510766787a800a05f954970a394c726c06"
+      "archive_sha256": "f1d5c7148dba09c60e9226b082324f05a6071494b630e7b51bbc3db32a5cca23",
+      "library_sha256": "450458584dea27a44c34b3b9fc1f9c50a1e468e4589c3106c63a696b710a518c"
     }
   }
 }
