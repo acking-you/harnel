@@ -187,7 +187,8 @@ def examples(directory, root, environment, server):
         server.release.set()
         if process.poll() is None:
             process.kill()
-            process.wait()
+            stdout, stderr = process.communicate(timeout=15)
+            print("Stream cancellation diagnostics:", stdout, stderr, flush=True)
     asyncio.run(acp(binary("acp"), root, environment))
     print("Examples passed: answer, streaming, cancellation, Rust tool, provider, saved-session resume, shared SDK/ACP.")
 

@@ -26,17 +26,27 @@ pub fn prompt(default: &str) -> String {
     std::env::args().nth(1).unwrap_or_else(|| default.into())
 }
 
-pub async fn interrupt() -> Result<()> {
+// Register before starting a turn, so an early console event cannot be lost
+// while select! is processing its first ready stream events.
+pub fn interrupt() -> Result<impl std::future::Future<Output = Result<()>>> {
     #[cfg(windows)]
     {
         let mut control_c = tokio::signal::windows::ctrl_c()?;
         let mut control_break = tokio::signal::windows::ctrl_break()?;
-        tokio::select! {
-            _ = control_c.recv() => {},
-            _ = control_break.recv() => {},
-        }
+        Ok(async move {
+            tokio::select! {
+                _ = control_c.recv() => {},
+                _ = control_break.recv() => {},
+            }
+            Ok(())
+        })
     }
     #[cfg(not(windows))]
-    tokio::signal::ctrl_c().await?;
-    Ok(())
+    {
+        let mut signal = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::interrupt())?;
+        Ok(async move {
+            signal.recv().await;
+            Ok(())
+        })
+    }
 }

@@ -32,7 +32,7 @@ async fn main() -> Result<()> {
         let mut events = harness.subscribe();
         let turn = session.prompt(common::prompt("Explain embedded agent harnesses."));
         tokio::pin!(turn);
-        let interrupted = common::interrupt();
+        let interrupted = common::interrupt()?;
         tokio::pin!(interrupted);
         let mut cancelled = false;
         loop {
@@ -51,6 +51,7 @@ async fn main() -> Result<()> {
                 result = &mut interrupted, if !cancelled => {
                     result?;
                     session.cancel()?;
+                    eprintln!("Cancelling turn...");
                     cancelled = true;
                     // Keep receiving until the native turn acknowledges cancellation.
                 }

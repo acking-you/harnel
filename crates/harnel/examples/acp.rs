@@ -18,7 +18,7 @@ async fn main() -> Result<()> {
         eprintln!("SDK session: {}", session.id());
         let stdio = harness.serve_stdio();
         tokio::pin!(stdio);
-        let interrupted = common::interrupt();
+        let interrupted = common::interrupt()?;
         tokio::pin!(interrupted);
         let mut stdio_open = true;
         let result = loop {

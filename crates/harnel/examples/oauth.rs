@@ -28,7 +28,7 @@ async fn main() -> Result<()> {
         let expires = initial["expiresIn"].as_u64().unwrap_or(600).min(3600);
         let deadline = tokio::time::sleep(Duration::from_secs(expires));
         tokio::pin!(deadline);
-        let interrupted = common::interrupt();
+        let interrupted = common::interrupt()?;
         tokio::pin!(interrupted);
         loop {
             let status = harness.login_status().await?;
