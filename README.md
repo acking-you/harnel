@@ -36,6 +36,13 @@ and statically links fx; running an application does not require Zig, an
 installed fx executable, Node.js, or a separate agent service. Python 3 is used
 only for verification and source packaging.
 
+[`harnel-sys/build.rs`](crates/harnel-sys/build.rs) runs automatically when Cargo
+builds the dependency. It compiles the bundled fx source into a static library
+and links it into your application. You do not build fx separately. Packaged
+crates include the pinned native sources, so consumers will not need Git or a
+submodule checkout. Zig is currently a build prerequisite; automatic compiler
+provisioning or prebuilt native artifacts are not implemented yet.
+
 On Windows, use PowerShell or a developer terminal. Git Bash is recommended for
 the native shell tools; fx also discovers installed PowerShell and cmd shells.
 The CLI accepts both Ctrl-C and Ctrl-Break for graceful shutdown.
@@ -169,11 +176,11 @@ use harnel::Provider;
 // Validate, persist, and activate a BYOK URL/key pair.
 harness.configure_provider("https://your-provider.example/v1", "your-key").await?;
 
-// Start native Codex or Grok OAuth and show its authorizationUrl in your UI.
+// Both Codex and Grok default to device-code authorization.
 let login = harness.login(Provider::Codex).await?;
-println!("{}", login["authorizationUrl"]);
+println!("Open {} and enter {}", login["verificationUri"], login["userCode"]);
 
-// Poll login_status while the user completes the browser flow.
+// The user can authorize from a browser on another device.
 let status = harness.login_status().await?;
 if status["state"] == "succeeded" {
     harness.switch_provider(Provider::Codex).await?;
@@ -182,10 +189,26 @@ if status["state"] == "succeeded" {
 # }
 ```
 
-Both providers support browser callback login. Grok additionally accepts a
-manual code when `acceptsManualCode` is true. The application controls browser
-opening and display; the library never takes over its UI. Final login state is
-retained so both SDK and ACP callers can observe completion.
+Device authorization works on remote hosts without a local browser or callback
+listener. `login` waits for the initial device-code request, then returns a
+snapshot containing `verificationUri`, `userCode`, `authorizationUrl` (which may
+include the code), and `expiresIn` seconds. Check `state` for a preparation
+failure before displaying these fields. The native runtime polls for approval,
+validates the account, and saves credentials in the instance profile.
+
+ACP `fx/provider/login/start` also defaults to `"method":"device_code"`. It
+returns immediately, possibly with `"state":"preparing"`; poll
+`fx/provider/login/status` to obtain the code and observe completion. SDK and
+ACP callers share the same login job, including cancellation. The private
+device credential is never part of these snapshots. Final status remains
+observable after completion.
+
+To use a browser callback explicitly, call
+`login_with_method(provider, harnel::LoginMethod::Browser)` or pass
+`"method":"browser"` over ACP. Grok's browser flow additionally accepts a
+manual callback code when `acceptsManualCode` is true. This is separate from
+entering a device code on the provider website. The application controls
+browser opening and display; the library never takes over its UI.
 
 Other controls include `cancel_login`, `submit_login_code`, `provider_status`,
 `provider_usage`, `refresh_credentials`, and `logout`. Refresh activates the

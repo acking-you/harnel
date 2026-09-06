@@ -15,4 +15,4 @@ pub mod tool;
 pub use error::{Error, Result, RpcError};
 pub use runtime::{Builder, Event, Events, Harness, Provider};
 pub use serde_json::{Value, json};
-pub use session::{Answer, Session, TurnResult};
+pub use session::{Answer, LoginMethod, Session, TurnResult};
