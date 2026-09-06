@@ -23,7 +23,19 @@ def verify(destination):
                            ZIG=str(destination / "zig-must-not-be-used"))
 
         def run(arguments, **options):
-            return subprocess.run(arguments, cwd=destination, env=environment, check=True, **options)
+            directory = destination
+            if arguments[0] == "cargo":
+                # Cargo searches cwd ancestors even with a different CARGO_HOME.
+                # Avoid inheriting a user's mirror from an ancestor .cargo directory.
+                directory = Path(destination.anchor)
+                arguments = [*arguments[:2], "--manifest-path", str(destination / "Cargo.toml"), *arguments[2:]]
+            try:
+                return subprocess.run(arguments, cwd=directory, env=environment, check=True, **options)
+            except subprocess.CalledProcessError as error:
+                if options.get("capture_output"):
+                    print(error.stdout or "", end="")
+                    print(error.stderr or "", end="", file=sys.stderr)
+                raise
 
         run(["cargo", "build", "--release"])
         run(["cargo", "clippy", "--all-targets", "--locked", "--offline", "--", "-D", "warnings"])
@@ -39,8 +51,13 @@ def verify(destination):
         assert all(p["source"] == "registry+https://github.com/rust-lang/crates.io-index"
                    for p in packages), packages
         binary = destination / "target/release" / ("harnel-notebook.exe" if os.name == "nt" else "harnel-notebook")
-        run([sys.executable, str(ROOT / "scripts/smoke-examples.py"), "--notebook", str(binary)])
+        smoke = run([sys.executable, str(ROOT / "scripts/smoke-examples.py"), "--notebook", str(binary)],
+                    capture_output=True, text=True)
+        print(smoke.stdout, end="")
+        revision = json.loads((ROOT / "crates/harnel-sys/native-release.json").read_text())["revision"]
+        assert f"Native revision: {revision}" in smoke.stdout, smoke.stdout
         report = {"packages": packages, "host": host, "binary_bytes": binary.stat().st_size,
+                  "native_revision": revision,
                   "fresh_cargo_cache": True, "offline_rebuild": True,
                   "native_compiler_disabled": True, "notebook_smoke": "passed"}
         (destination / "verification.json").write_text(json.dumps(report, indent=2) + "\n")

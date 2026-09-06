@@ -44,6 +44,7 @@ jobs:
       - name: Formatting
         run: |
           cargo fmt --all --check
+          cargo fmt --manifest-path examples/notebook/Cargo.toml --check
           rustfmt --edition 2024 --check crates/harnel-native-*/build.rs crates/harnel-native-*/src/lib.rs
       - name: Clippy
         run: cargo clippy --workspace --all-targets --locked -- -D warnings
@@ -110,6 +111,8 @@ jobs:
         with:
           submodules: recursive
       - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'

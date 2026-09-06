@@ -29,7 +29,7 @@ ACP transports, and runnable examples. The API is early and may change in future
 with `cargo install harnel --locked`.
 
 Default builds require Rust 1.85 or newer and the platform linker. They use
-precompiled static libraries from **fx v0.0.9**, selected by Cargo's target.
+precompiled static libraries from **fx v0.0.10**, selected by Cargo's target.
 No Zig compiler, fx executable, or build-time download script is needed by a
 packaged dependency. Cargo downloads and caches the platform crate along with
 ordinary dependencies; after dependencies are prepared, builds can run offline.
@@ -111,11 +111,15 @@ async fn main() -> Result<()> {
         .state_dir("./agent-state")
         .build().await?;
 
-    let session = harness.session().await?;
-    let answer = session.ask("Explain this workspace").await?;
-    println!("{}", answer.text);
-
-    harness.shutdown().await
+    let result = async {
+        let session = harness.session().await?;
+        let answer = session.ask("Explain this workspace").await?;
+        println!("{}", answer.text);
+        Ok(())
+    }
+    .await;
+    let shutdown = harness.shutdown().await;
+    result.and(shutdown)
 }
 ```
 
@@ -350,6 +354,7 @@ joins native workers before freeing state.
 
 ```sh
 cargo fmt --all --check
+cargo fmt --manifest-path examples/notebook/Cargo.toml --check
 cargo clippy --workspace --all-targets --locked -- -D warnings
 cargo test --workspace --all-targets --locked
 cargo doc --workspace --no-deps --locked
