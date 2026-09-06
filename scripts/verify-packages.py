@@ -87,7 +87,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ''')
     run(["cargo", "run", "--manifest-path", str(consumer / "Cargo.toml"), *cargo_config])
     packaged = vendor / f"harnel-{VERSION}"
-    run(["cargo", "build", "--manifest-path", str(packaged / "Cargo.toml"), "--bin", "harnel",
+    run(["cargo", "build", "--manifest-path", str(packaged / "Cargo.toml"), "--bin", "harnel", "--examples",
          "--target-dir", str(work / "consumer-build"), *cargo_config])
     binary = work / "consumer-build/debug" / ("harnel.exe" if os.name == "nt" else "harnel")
     revision = json.loads((ROOT / "crates/harnel-sys/native-release.json").read_text())["revision"]
@@ -95,6 +95,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     if revision not in actual:
         raise RuntimeError(f"Packaged CLI linked an unexpected native revision: {actual}")
     run([sys.executable, "scripts/smoke-cli.py", str(binary)])
+    run([sys.executable, "scripts/smoke-examples.py", "--examples", str(work / "consumer-build/debug/examples")])
+    notebook = work / "notebook"
+    shutil.copytree(ROOT / "examples/notebook", notebook, ignore=shutil.ignore_patterns("target", ".harnel-state"))
+    run(["cargo", "build", "--manifest-path", str(notebook / "Cargo.toml"), *cargo_config])
+    run(["cargo", "clippy", "--manifest-path", str(notebook / "Cargo.toml"), "--all-targets", *cargo_config, "--", "-D", "warnings"])
+    notebook_binary = notebook / "target/debug" / ("harnel-notebook.exe" if os.name == "nt" else "harnel-notebook")
+    run([sys.executable, "scripts/smoke-examples.py", "--notebook", str(notebook_binary)])
     print(f"Verified seven .crate packages from fx {revision}. No crates were published.")
 
 

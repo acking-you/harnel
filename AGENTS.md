@@ -16,7 +16,9 @@ written in English. Document actual behavior separately from planned work.
 - `vendor/fx` is an independent Git submodule. Follow its nearest `AGENTS.md`.
   Engine behavior belongs there, including the agent loop, tools, providers,
   authentication, compaction, and durable session semantics.
-- `examples` contains runnable applications, not alternate implementations.
+- `crates/harnel/examples` contains packaged SDK examples. `examples/notebook`
+  is an independent application with a crates.io dependency, outside the SDK
+  workspace. Both use the native engine rather than alternate implementations.
 - `crates/harnel-native-*` own target-specific release payloads. They do not
   compile fx or download artifacts in consumer builds.
 - Build and release automation belongs in `xtask` or `scripts`.
@@ -80,3 +82,11 @@ Keep source builds explicit and test compiler provisioning independently.
 host PATH or install compilers globally. Before publication, run
 `scripts/verify-packages.py` and the no-Zig native matrix on the exact revision.
 The registry dependency order is platform crates, harnel-sys, then harnel.
+
+Keep the documented examples executable: build them and run
+`scripts/smoke-examples.py --examples target/debug/examples`. OAuth examples
+use real accounts only when explicitly requested; integration fixtures cover
+those flows in CI. Package verification also builds and exercises the notebook
+application against the assembled crates. After publication, verify a copy
+outside this repository using the real crates.io registry without path
+dependencies, patches, source replacement, or native development overrides.
