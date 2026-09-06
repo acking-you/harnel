@@ -24,6 +24,14 @@ pub struct Answer {
     pub turn: TurnResult,
 }
 
+/// Device codes work without a browser or callback listener on the host.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum LoginMethod {
+    DeviceCode,
+    Browser,
+}
+
 impl Harness {
     pub async fn session(&self) -> Result<Session> {
         let result = self
@@ -86,8 +94,31 @@ impl Harness {
         .await
     }
     pub async fn login(&self, provider: Provider) -> Result<Value> {
-        self.request("fx/provider/login/start", json!({"provider":provider}))
+        self.login_with_method(provider, LoginMethod::DeviceCode)
             .await
+    }
+    /// Wait for the authorization URL/code to become available. Authorization
+    /// itself remains observable through `login_status` from every attachment.
+    pub async fn login_with_method(
+        &self,
+        provider: Provider,
+        method: LoginMethod,
+    ) -> Result<Value> {
+        let mut status = self
+            .request(
+                "fx/provider/login/start",
+                json!({"provider":provider,"method":method}),
+            )
+            .await?;
+        tokio::time::timeout(std::time::Duration::from_secs(60), async {
+            while status["state"] == "preparing" {
+                tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+                status = self.login_status().await?;
+            }
+            Ok(status)
+        })
+        .await
+        .map_err(|_| Error::Timeout)?
     }
     pub async fn login_status(&self) -> Result<Value> {
         self.request("fx/provider/login/status", json!({})).await
@@ -97,7 +128,21 @@ impl Harness {
             .await
     }
     pub async fn cancel_login(&self) -> Result<Value> {
-        self.request("fx/provider/login/cancel", json!({})).await
+        let result = self.request("fx/provider/login/cancel", json!({})).await?;
+        if result["cancelled"] == true {
+            tokio::time::timeout(std::time::Duration::from_secs(60), async {
+                loop {
+                    let status = self.login_status().await?;
+                    if status["state"] != "preparing" && status["state"] != "polling" {
+                        return Ok::<(), Error>(());
+                    }
+                    tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+                }
+            })
+            .await
+            .map_err(|_| Error::Timeout)??;
+        }
+        Ok(result)
     }
     pub async fn provider_usage(&self) -> Result<Value> {
         self.request("fx/provider/usage", json!({})).await

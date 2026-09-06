@@ -1,4 +1,5 @@
 #![allow(dead_code)]
+pub mod acp;
 use harnel::{Value, json};
 use std::sync::{
     Arc, Mutex,
