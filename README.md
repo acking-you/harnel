@@ -115,14 +115,24 @@ moved:
 | Notebook profile directory `.harnel-state` | `.infx-state` |
 
 Profiles you pass with `state_dir` hold fx state under `<state_dir>/.fx/` and
-need no migration.
+need no migration. The notebook default changed to `.infx-state`: to resume
+an existing notebook profile, set `INFX_STATE_DIR` to its previous
+`.harnel-state` directory, or move that directory to `.infx-state`.
+
+The source engine uses `_infx/tool/call` for private host tool callbacks. The
+SDK also recognizes the former method used by the pinned fx v0.0.10 binaries.
+Both methods stay inside the embedding host and are rejected on external ACP
+connections; applications do not need a protocol adapter.
 
 ## Status and requirements
 
-INFX 0.1.0 is the first release under this name. It contains the native
-runtime integration, Rust SDK, ACP transports, and runnable examples. The API is
-early and may change in future 0.x releases. Use `infx = "0.1.0"` in a Rust
-application, or install the CLI with `cargo install infx --locked`.
+INFX 0.1.0 is prepared as the first release under this name; the crates have
+not yet been published to crates.io. Until publication, use the checkout
+instructions below. The release includes the native runtime integration, Rust
+SDK, ACP transports, and runnable examples. The API is early and may change in
+future 0.x releases. After publication, use `infx = "0.1.0"` in a Rust application
+or install the CLI with `cargo install infx --locked`. See the
+[release checklist](docs/infx-rename-followups.md) for publication and verification.
 
 Default builds require Rust 1.85 or newer and the platform linker. They use
 precompiled static libraries from **fx v0.0.10**, selected by Cargo's target.

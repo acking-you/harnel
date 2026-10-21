@@ -18,6 +18,11 @@ async fn native_lifecycle_and_shared_control() {
             .unwrap();
         assert_ne!(first.state_dir(), second.state_dir());
         assert_eq!(first.capabilities()["protocolVersion"], 1);
+        assert_eq!(first.capabilities()["agentInfo"]["name"], "infx");
+        assert_eq!(
+            first.capabilities()["_meta"]["infx"]["nativeRevision"],
+            first.native_revision()
+        );
         assert_eq!(first.bash_first(true).await.unwrap()["bashFirst"], true);
         assert_eq!(
             first

@@ -441,7 +441,7 @@ fn dispatch(inner: &Arc<Inner>, mut message: Value, executor: &tokio::runtime::H
                 .cloned();
             executor.spawn(async move {
                 let work = async move {
-                    if method == infx_sys::HOST_TOOL_METHOD {
+                    if infx_sys::is_host_tool_method(&method) {
                         let tool = tool.ok_or_else(|| Error::Invalid("host tool is not registered".into()))?;
                         let output = tool.execute(serde_json::from_value(params)?).await?;
                         serde_json::to_value(output).map_err(Error::from)

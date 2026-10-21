@@ -26,11 +26,16 @@ unsafe extern "C" {
     fn fx_runtime_destroy(handle: *mut c_void);
 }
 
-/// Private JSON-RPC request the pinned native release sends to run a host tool.
+/// Private JSON-RPC request used by the native engine to run a host tool.
+pub const HOST_TOOL_METHOD: &str = "_infx/tool/call";
+
+/// Recognize host tool requests from both current sources and fx v0.0.10.
 ///
-/// The method name belongs to the fx release contract recorded in
-/// `native-release.json`; fx v0.0.10 still emits its original name.
-pub const HOST_TOOL_METHOD: &str = "_harnel/tool/call";
+/// The pinned prebuilt release still uses the former name. Keep compatibility
+/// at this native boundary so source and prebuilt builds share SDK behavior.
+pub fn is_host_tool_method(method: &str) -> bool {
+    matches!(method, HOST_TOOL_METHOD | "_harnel/tool/call")
+}
 
 #[derive(Debug)]
 pub struct Error {
