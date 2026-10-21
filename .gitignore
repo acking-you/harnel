@@ -1,10 +1,10 @@
 /target/
-/.harnel/
-/crates/harnel-sys/native/
+/.infx/
+/crates/infx-sys/native/
 *.crate
 .DS_Store
 
-/crates/harnel-native-*/native/
-/crates/harnel-native-*/target/
-/crates/harnel-native-*/Cargo.lock
+/crates/infx-native-*/native/
+/crates/infx-native-*/target/
+/crates/infx-native-*/Cargo.lock
 __pycache__/

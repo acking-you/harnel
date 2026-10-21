@@ -235,75 +235,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "harnel"
-version = "0.1.0"
-dependencies = [
- "harnel-sys",
- "serde",
- "serde_json",
- "tempfile",
- "thiserror",
- "tokio",
-]
-
-[[package]]
-name = "harnel-native-aarch64-apple-darwin"
-version = "0.1.0"
-dependencies = [
- "serde_json",
- "sha2",
-]
-
-[[package]]
-name = "harnel-native-aarch64-unknown-linux-gnu"
-version = "0.1.0"
-dependencies = [
- "serde_json",
- "sha2",
-]
-
-[[package]]
-name = "harnel-native-x86_64-apple-darwin"
-version = "0.1.0"
-dependencies = [
- "serde_json",
- "sha2",
-]
-
-[[package]]
-name = "harnel-native-x86_64-pc-windows-msvc"
-version = "0.1.0"
-dependencies = [
- "serde_json",
- "sha2",
-]
-
-[[package]]
-name = "harnel-native-x86_64-unknown-linux-gnu"
-version = "0.1.0"
-dependencies = [
- "serde_json",
- "sha2",
-]
-
-[[package]]
-name = "harnel-sys"
-version = "0.1.0"
-dependencies = [
- "harnel-native-aarch64-apple-darwin",
- "harnel-native-aarch64-unknown-linux-gnu",
- "harnel-native-x86_64-apple-darwin",
- "harnel-native-x86_64-pc-windows-msvc",
- "harnel-native-x86_64-unknown-linux-gnu",
- "lzma-rs",
- "serde_json",
- "sha2",
- "tar",
- "ureq",
- "zip",
-]
-
-[[package]]
 name = "hashbrown"
 version = "0.17.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -333,6 +264,75 @@ checksum = "cc4e190f5d26ca7051642629da2c52fc03bde85a03197c99408dcd291734c855"
 dependencies = [
  "equivalent",
  "hashbrown",
+]
+
+[[package]]
+name = "infx"
+version = "0.1.0"
+dependencies = [
+ "infx-sys",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror",
+ "tokio",
+]
+
+[[package]]
+name = "infx-native-aarch64-apple-darwin"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+ "sha2",
+]
+
+[[package]]
+name = "infx-native-aarch64-unknown-linux-gnu"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+ "sha2",
+]
+
+[[package]]
+name = "infx-native-x86_64-apple-darwin"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+ "sha2",
+]
+
+[[package]]
+name = "infx-native-x86_64-pc-windows-msvc"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+ "sha2",
+]
+
+[[package]]
+name = "infx-native-x86_64-unknown-linux-gnu"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+ "sha2",
+]
+
+[[package]]
+name = "infx-sys"
+version = "0.1.0"
+dependencies = [
+ "infx-native-aarch64-apple-darwin",
+ "infx-native-aarch64-unknown-linux-gnu",
+ "infx-native-x86_64-apple-darwin",
+ "infx-native-x86_64-pc-windows-msvc",
+ "infx-native-x86_64-unknown-linux-gnu",
+ "lzma-rs",
+ "serde_json",
+ "sha2",
+ "tar",
+ "ureq",
+ "zip",
 ]
 
 [[package]]

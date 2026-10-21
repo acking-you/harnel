@@ -85,8 +85,8 @@ with tempfile.TemporaryDirectory() as root:
     try:
         result = subprocess.run([binary, "run", "Reply with CLI_SMOKE_OK", "--workspace", root,
             "--model", "openai/gpt-5", "--base-url", f"http://127.0.0.1:{server.server_port}/v1",
-            "--api-key-env", "HARNEL_SMOKE_KEY", "--no-native-tools"],
-            env={**os.environ, "HARNEL_SMOKE_KEY": "synthetic-fixture-key"},
+            "--api-key-env", "INFX_SMOKE_KEY", "--no-native-tools"],
+            env={**os.environ, "INFX_SMOKE_KEY": "synthetic-fixture-key"},
             text=True, capture_output=True, timeout=30)
         assert result.returncode == 0, result.stderr
         assert result.stdout.strip() == "CLI_SMOKE_OK", result.stdout

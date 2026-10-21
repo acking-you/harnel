@@ -1,11 +1,11 @@
 [workspace]
-members = ["crates/harnel", "crates/harnel-sys"]
+members = ["crates/infx", "crates/infx-sys"]
 exclude = [
-    "crates/harnel-native-x86_64-unknown-linux-gnu",
-    "crates/harnel-native-aarch64-unknown-linux-gnu",
-    "crates/harnel-native-x86_64-apple-darwin",
-    "crates/harnel-native-aarch64-apple-darwin",
-    "crates/harnel-native-x86_64-pc-windows-msvc",
+    "crates/infx-native-x86_64-unknown-linux-gnu",
+    "crates/infx-native-aarch64-unknown-linux-gnu",
+    "crates/infx-native-x86_64-apple-darwin",
+    "crates/infx-native-aarch64-apple-darwin",
+    "crates/infx-native-x86_64-pc-windows-msvc",
 ]
 resolver = "3"
 
@@ -14,7 +14,7 @@ version = "0.1.0"
 edition = "2024"
 rust-version = "1.85"
 license = "Apache-2.0"
-repository = "https://github.com/acking-you/harnel"
+repository = "https://github.com/acking-you/infx"
 
 [workspace.dependencies]
 serde = { version = "1.0", features = ["derive"] }

@@ -45,7 +45,7 @@ jobs:
         run: |
           cargo fmt --all --check
           cargo fmt --manifest-path examples/notebook/Cargo.toml --check
-          rustfmt --edition 2024 --check crates/harnel-native-*/build.rs crates/harnel-native-*/src/lib.rs
+          rustfmt --edition 2024 --check crates/infx-native-*/build.rs crates/infx-native-*/src/lib.rs
       - name: Clippy
         run: cargo clippy --workspace --all-targets --locked -- -D warnings
       - name: Native SDK and ACP integration tests
@@ -56,8 +56,8 @@ jobs:
         run: cargo doc --workspace --no-deps --locked
       - name: Run CLI
         run: |
-          cargo build --locked --bin harnel
-          python scripts/smoke-cli.py target/debug/harnel${{ runner.os == 'Windows' && '.exe' || '' }}
+          cargo build --locked --bin infx
+          python scripts/smoke-cli.py target/debug/infx${{ runner.os == 'Windows' && '.exe' || '' }}
       - name: Run documented examples
         run: |
           cargo build --examples --locked
@@ -97,8 +97,8 @@ jobs:
           python -c "import shutil; assert shutil.which('zig') is None"
           cargo clippy --workspace --all-targets --no-default-features --features build-from-source --locked -- -D warnings
           cargo test --workspace --all-targets --no-default-features --features build-from-source --locked
-          cargo build --bin harnel --no-default-features --features build-from-source --locked
-          python scripts/smoke-cli.py target/debug/harnel${{ runner.os == 'Windows' && '.exe' || '' }}
+          cargo build --bin infx --no-default-features --features build-from-source --locked
+          python scripts/smoke-cli.py target/debug/infx${{ runner.os == 'Windows' && '.exe' || '' }}
           cargo build --examples --no-default-features --features build-from-source --locked
           python scripts/smoke-examples.py --examples target/debug/examples
 
