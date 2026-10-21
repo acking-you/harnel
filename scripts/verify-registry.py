@@ -15,11 +15,11 @@ ROOT = Path(__file__).resolve().parents[1]
 def verify(destination):
     # copytree deliberately refuses an existing directory to preserve user work.
     shutil.copytree(ROOT / "examples/notebook", destination,
-                    ignore=shutil.ignore_patterns("target", ".harnel-state", "Cargo.lock"))
-    with tempfile.TemporaryDirectory(prefix="harnel-registry-cache-") as cache:
+                    ignore=shutil.ignore_patterns("target", ".infx-state", "Cargo.lock"))
+    with tempfile.TemporaryDirectory(prefix="infx-registry-cache-") as cache:
         environment = {key: value for key, value in os.environ.items()
-                       if not key.startswith(("HARNEL_", "CARGO_"))}
-        environment.update(CARGO_HOME=cache, HARNEL_OFFLINE="1",
+                       if not key.startswith(("INFX_", "CARGO_"))}
+        environment.update(CARGO_HOME=cache, INFX_OFFLINE="1",
                            ZIG=str(destination / "zig-must-not-be-used"))
 
         def run(arguments, **options):
@@ -45,16 +45,16 @@ def verify(destination):
         metadata = json.loads(run(["cargo", "metadata", "--format-version", "1", "--locked",
                                    "--offline", "--filter-platform", host], capture_output=True, text=True).stdout)
         packages = [{"name": p["name"], "version": p["version"], "source": p["source"]}
-                    for p in metadata["packages"] if p["name"] == "harnel" or p["name"].startswith("harnel-")
-                    if p["name"] != "harnel-notebook"]
-        assert packages and any(p["name"] == "harnel" for p in packages), packages
+                    for p in metadata["packages"] if p["name"] == "infx" or p["name"].startswith("infx-")
+                    if p["name"] != "infx-notebook"]
+        assert packages and any(p["name"] == "infx" for p in packages), packages
         assert all(p["source"] == "registry+https://github.com/rust-lang/crates.io-index"
                    for p in packages), packages
-        binary = destination / "target/release" / ("harnel-notebook.exe" if os.name == "nt" else "harnel-notebook")
+        binary = destination / "target/release" / ("infx-notebook.exe" if os.name == "nt" else "infx-notebook")
         smoke = run([sys.executable, str(ROOT / "scripts/smoke-examples.py"), "--notebook", str(binary)],
                     capture_output=True, text=True)
         print(smoke.stdout, end="")
-        revision = json.loads((ROOT / "crates/harnel-sys/native-release.json").read_text())["revision"]
+        revision = json.loads((ROOT / "crates/infx-sys/native-release.json").read_text())["revision"]
         assert f"Native revision: {revision}" in smoke.stdout, smoke.stdout
         report = {"packages": packages, "host": host, "binary_bytes": binary.stat().st_size,
                   "native_revision": revision,
@@ -71,7 +71,7 @@ def main():
     if options.destination:
         verify(options.destination.resolve())
     else:
-        with tempfile.TemporaryDirectory(prefix="harnel-registry-consumer-") as temporary:
+        with tempfile.TemporaryDirectory(prefix="infx-registry-consumer-") as temporary:
             verify(Path(temporary) / "notebook")
 
 

@@ -1,106 +1,45 @@
-# Harnel
+<p align="center">
+  <img src="https://raw.githubusercontent.com/acking-you/infx/main/docs/assets/infx-poster.svg" alt="INFX: embed an agent like a database. A native agent engine, powered by fx, linked into any app." width="100%">
+</p>
 
-An embeddable agent harness for Rust, powered by [fx](https://github.com/acking-you/fx).
+<p align="center">
+  <a href="https://crates.io/crates/infx"><img alt="crates.io" src="https://img.shields.io/crates/v/infx.svg"></a>
+  <a href="https://docs.rs/infx"><img alt="docs.rs" src="https://img.shields.io/docsrs/infx"></a>
+  <a href="https://github.com/acking-you/infx/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/acking-you/infx/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="LICENSE"><img alt="License: Apache-2.0" src="https://img.shields.io/badge/license-Apache--2.0-blue.svg"></a>
+</p>
 
-[![CI](https://github.com/acking-you/harnel/actions/workflows/ci.yml/badge.svg)](https://github.com/acking-you/harnel/actions/workflows/ci.yml)
+# INFX
 
-## Why Harnel exists
+**INFX** (pronounced *infix*) is an embeddable agent engine for Rust
+applications, powered by [fx](https://github.com/acking-you/fx). Link it into a
+program the way you would link an embedded database: there is no agent service
+to operate, no Zig toolchain to install, and state lives where the application
+puts it.
 
-Applications should be able to add an agent as easily as they add an embedded
-database. Harnel aims to bring the qualities that make SQLite useful to the
-agent harness: a small native runtime, a direct library interface, explicit
-ownership of state, and no mandatory service to operate.
+- **In-process engine.** fx's agent loop, tools, context compaction, and saved
+  sessions run inside your process from a precompiled static library.
+- **One shared runtime.** Rust SDK calls and ACP clients, over stdio or a
+  loopback listener, drive the same live session.
+- **Bring your own key.** Use any OpenAI Responses-compatible endpoint, or sign
+  in to Codex and Grok with device-code authorization.
+- **Application tools.** Register Rust tools that execute inside the native
+  agent loop and pass through fx's admission policy.
+- **Prebuilt targets.** Linux GNU and macOS on x86_64/aarch64, and Windows
+  x86_64 MSVC.
 
-The application supplies its model credentials, tools, instructions, and user
-interface. Harnel supplies the execution loop, session state, streaming events,
-context management, and provider controls. Rust code and ACP clients operate on
-the same running harness through SDK, stdio, and listener interfaces.
+## Quick start
 
-Harnel reuses fx's Zig implementation instead of maintaining a second agent
-loop. The fx fork is a Git submodule pinned to an exact revision. Shared engine
-changes belong in fx; Rust ergonomics, transport attachment, and distribution
-belong here.
-
-## Status and requirements
-
-Harnel 0.1.0 is the initial release of the native runtime integration, Rust SDK,
-ACP transports, and runnable examples. The API is early and may change in future
-0.x releases. Use `harnel = "0.1.0"` in a Rust application, or install the CLI
-with `cargo install harnel --locked`.
-
-Default builds require Rust 1.85 or newer and the platform linker. They use
-precompiled static libraries from **fx v0.0.10**, selected by Cargo's target.
-No Zig compiler, fx executable, or build-time download script is needed by a
-packaged dependency. Cargo downloads and caches the platform crate along with
-ordinary dependencies; after dependencies are prepared, builds can run offline.
-
-Supported release targets are Linux GNU on x86_64/aarch64 (glibc 2.28 or newer),
-macOS on x86_64/aarch64 (macOS 13 or newer), and Windows x86_64 MSVC (Windows 10
-or newer, dynamic MSVC CRT). Windows requires the normal Rust MSVC linker and
-Windows SDK. Libraries use baseline CPUs and stripped ReleaseSafe code.
-Running an application requires neither Zig nor a separate agent service.
-
-The native release lock records the fx revision, ABI, and archive/library
-checksums. Platform crates contain the original release library, C header,
-manifest, and license notices. Build scripts validate the target, ABI, revision,
-and checksums before linking. The release library is embedded in the final
-application; it is not loaded from a separately installed fx service.
-
-Source builds are an explicit option. They compile the submodule in a checkout,
-or the bundled source in a packaged crate. They use Zig **0.16.0**, automatically
-obtaining the pinned, checksum-verified compiler when it is not already
-available. Downloads and compiler files stay in Cargo's build output directory.
-Set `ZIG` to use an existing compiler, or `HARNEL_OFFLINE=1` to prohibit compiler
-downloads. Python 3 is used only for repository preparation and verification.
-
-On Windows, use PowerShell or a developer terminal, and use `python` in place
-of `python3` in the repository commands below. Git Bash is recommended for
-the native shell tools; fx also discovers installed PowerShell and cmd shells.
-The CLI accepts both Ctrl-C and Ctrl-Break for graceful shutdown.
-
-The SQLite comparison describes the product direction: explicit ownership, an
-embedded deployment model, and a small integration surface. It is not a claim
-of SQLite-equivalent binary size, storage guarantees, or maturity. Further size
-optimization remains part of the product direction.
-
-## Build and try it
-
-```sh
-git clone https://github.com/acking-you/harnel.git
-cd harnel
-python3 scripts/prepare-native.py
-cargo build --release
-cargo run --bin harnel -- --help
-```
-
-For an existing checkout, run `python3 scripts/prepare-native.py` after updating
-to a different native release. Default builds do not need the fx submodule.
-
-```sh
-export MY_MODEL_KEY='your-key'
-cargo run --bin harnel -- run "Explain this workspace" \
-  --workspace . \
-  --model openai/gpt-5 \
-  --base-url https://your-provider.example/v1 \
-  --api-key-env MY_MODEL_KEY
-```
-
-BYOK currently uses the OpenAI Responses protocol. An endpoint that implements
-only Chat Completions is not sufficient. Select a model actually offered by
-your provider.
-
-## Embed in Rust
-
-Add the crate to your application. No repository preparation is needed:
+Add the crate to your application. No repository preparation or Zig installation is needed:
 
 ```toml
 [dependencies]
-harnel = "0.1.0"
+infx = "0.1.0"
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 ```
 
 ```rust,no_run
-use harnel::{Harness, Result};
+use infx::{Harness, Result};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -126,38 +65,149 @@ async fn main() -> Result<()> {
 Omit `state_dir` for a temporary profile. A persistent profile stores fx state
 under `<state_dir>/.fx/`, including credentials and saved sessions. Multiple
 `Harness` instances have independent configuration; clones share their engine.
-Harnel does not change the application's environment or working directory.
+INFX does not change the application's environment or working directory.
 Provider environment variables must be supplied explicitly through builder
 methods or `Builder::env`.
 
 `ask` collects up to 8 MiB of assistant text. For streaming, subscribe before
 calling `session.prompt(...)` and consume `Events::recv()` concurrently. Events
 include text, reasoning, tool progress, permission-related updates, and session
-lifecycle notifications. See the [streaming example](crates/harnel/examples/stream.rs).
+lifecycle notifications. See the [streaming example](crates/infx/examples/stream.rs).
+
+## Why INFX exists
+
+Applications should be able to add an agent as easily as they add an embedded
+database. INFX aims to bring the qualities that make SQLite useful to the
+agent harness: a small native runtime, a direct library interface, explicit
+ownership of state, and no mandatory service to operate.
+
+The application supplies its model credentials, tools, instructions, and user
+interface. INFX supplies the execution loop, session state, streaming events,
+context management, and provider controls. Rust code and ACP clients operate on
+the same running harness through SDK, stdio, and listener interfaces.
+
+INFX reuses fx's Zig implementation instead of maintaining a second agent
+loop. The fx fork is a Git submodule pinned to an exact revision. Shared engine
+changes belong in fx; Rust ergonomics, transport attachment, and distribution
+belong here.
+
+## The name
+
+- **IN + FX**: the fx engine, inside your application. The name keeps fx in plain sight.
+- **infix**: in linguistics, an affix inserted inside a word. INFX inserts an
+  agent inside a host program rather than running beside it.
+- **X**: the open end. Any application, any host, any boundary the agent needs
+  to reach.
+
+## Renamed from Harnel
+
+INFX was first published as `harnel` 0.1.0. The API is unchanged; only names
+moved:
+
+| Before | After |
+| --- | --- |
+| `harnel`, `harnel-sys`, `harnel-native-*` crates | `infx`, `infx-sys`, `infx-native-*` |
+| `use harnel::...` | `use infx::...` |
+| `harnel` CLI | `infx` CLI |
+| `HARNEL_OFFLINE`, `HARNEL_FX_SOURCE`, `HARNEL_FX_LIB_DIR` | `INFX_OFFLINE`, `INFX_FX_SOURCE`, `INFX_FX_LIB_DIR` |
+| `_meta.harnel` in the ACP `initialize` result | `_meta.infx` |
+| Example variables such as `HARNEL_MODEL` and `HARNEL_STATE_DIR` | `INFX_MODEL`, `INFX_STATE_DIR` |
+| Notebook profile directory `.harnel-state` | `.infx-state` |
+
+Profiles you pass with `state_dir` hold fx state under `<state_dir>/.fx/` and
+need no migration.
+
+## Status and requirements
+
+INFX 0.1.0 is the first release under this name. It contains the native
+runtime integration, Rust SDK, ACP transports, and runnable examples. The API is
+early and may change in future 0.x releases. Use `infx = "0.1.0"` in a Rust
+application, or install the CLI with `cargo install infx --locked`.
+
+Default builds require Rust 1.85 or newer and the platform linker. They use
+precompiled static libraries from **fx v0.0.10**, selected by Cargo's target.
+No Zig compiler, fx executable, or build-time download script is needed by a
+packaged dependency. Cargo downloads and caches the platform crate along with
+ordinary dependencies; after dependencies are prepared, builds can run offline.
+
+Supported release targets are Linux GNU on x86_64/aarch64 (glibc 2.28 or newer),
+macOS on x86_64/aarch64 (macOS 13 or newer), and Windows x86_64 MSVC (Windows 10
+or newer, dynamic MSVC CRT). Windows requires the normal Rust MSVC linker and
+Windows SDK. Libraries use baseline CPUs and stripped ReleaseSafe code.
+Running an application requires neither Zig nor a separate agent service.
+
+The native release lock records the fx revision, ABI, and archive/library
+checksums. Platform crates contain the original release library, C header,
+manifest, and license notices. Build scripts validate the target, ABI, revision,
+and checksums before linking. The release library is embedded in the final
+application; it is not loaded from a separately installed fx service.
+
+Source builds are an explicit option. They compile the submodule in a checkout,
+or the bundled source in a packaged crate. They use Zig **0.16.0**, automatically
+obtaining the pinned, checksum-verified compiler when it is not already
+available. Downloads and compiler files stay in Cargo's build output directory.
+Set `ZIG` to use an existing compiler, or `INFX_OFFLINE=1` to prohibit compiler
+downloads. Python 3 is used only for repository preparation and verification.
+
+On Windows, use PowerShell or a developer terminal, and use `python` in place
+of `python3` in the repository commands below. Git Bash is recommended for
+the native shell tools; fx also discovers installed PowerShell and cmd shells.
+The CLI accepts both Ctrl-C and Ctrl-Break for graceful shutdown.
+
+The SQLite comparison describes the product direction: explicit ownership, an
+embedded deployment model, and a small integration surface. It is not a claim
+of SQLite-equivalent binary size, storage guarantees, or maturity. Further size
+optimization remains part of the product direction.
+
+## Build and try it
+
+```sh
+git clone https://github.com/acking-you/infx.git
+cd infx
+python3 scripts/prepare-native.py
+cargo build --release
+cargo run --bin infx -- --help
+```
+
+For an existing checkout, run `python3 scripts/prepare-native.py` after updating
+to a different native release. Default builds do not need the fx submodule.
+
+```sh
+export MY_MODEL_KEY='your-key'
+cargo run --bin infx -- run "Explain this workspace" \
+  --workspace . \
+  --model openai/gpt-5 \
+  --base-url https://your-provider.example/v1 \
+  --api-key-env MY_MODEL_KEY
+```
+
+BYOK currently uses the OpenAI Responses protocol. An endpoint that implements
+only Chat Completions is not sufficient. Select a model actually offered by
+your provider.
 
 ## Runnable examples
 
-The [examples guide](crates/harnel/examples/README.md) includes setup, expected
+The [examples guide](crates/infx/examples/README.md) includes setup, expected
 behavior, lifecycle details, and PowerShell instructions for seven applications:
 
 | Application | Demonstrates |
 | --- | --- |
-| [Basic embedding](crates/harnel/examples/embed.rs) | Collect an answer with a small SDK integration |
-| [Streaming](crates/harnel/examples/stream.rs) | Incremental text, final event draining, Ctrl-C cancellation |
-| [Custom Rust tool](crates/harnel/examples/custom_tool.rs) | Validated application inventory lookup inside the native loop |
-| [Saved sessions](crates/harnel/examples/sessions.rs) | Resume a conversation in another process |
-| [Provider control](crates/harnel/examples/provider.rs) | Persist BYOK configuration and share it between SDK handles |
-| [Device authorization](crates/harnel/examples/oauth.rs) | Codex/Grok login from another device, expiration and cancellation |
-| [ACP service](crates/harnel/examples/acp.rs) | SDK-owned session shared over stdio and a listener |
+| [Basic embedding](crates/infx/examples/embed.rs) | Collect an answer with a small SDK integration |
+| [Streaming](crates/infx/examples/stream.rs) | Incremental text, final event draining, Ctrl-C cancellation |
+| [Custom Rust tool](crates/infx/examples/custom_tool.rs) | Validated application inventory lookup inside the native loop |
+| [Saved sessions](crates/infx/examples/sessions.rs) | Resume a conversation in another process |
+| [Provider control](crates/infx/examples/provider.rs) | Persist BYOK configuration and share it between SDK handles |
+| [Device authorization](crates/infx/examples/oauth.rs) | Codex/Grok login from another device, expiration and cancellation |
+| [ACP service](crates/infx/examples/acp.rs) | SDK-owned session shared over stdio and a listener |
 
-For a complete application, try [Harnel Notebook](examples/notebook/README.md).
+For a complete application, try [INFX Notebook](examples/notebook/README.md).
 It depends on the crates.io version, reads real Markdown notes through a Rust
 tool, streams cited answers, and restores conversations after a process restart.
 
 ## ACP and SDK share live state
 
 ```rust,no_run
-# async fn example(harness: harnel::Harness) -> harnel::Result<()> {
+# async fn example(harness: infx::Harness) -> infx::Result<()> {
 let session = harness.session().await?;
 let listener = harness.listen("127.0.0.1:7788".parse().unwrap()).await?;
 
@@ -172,23 +222,23 @@ harness.shutdown().await
 
 ```sh
 # ACP over stdin/stdout
-harnel acp --stdio --workspace . --state-dir ./agent-state
+infx acp --stdio --workspace . --state-dir ./agent-state
 
 # A listener, or stdio and a listener attached to the same engine
-harnel acp --listen 127.0.0.1:7788 --workspace . --state-dir ./agent-state
-harnel acp --stdio --listen 127.0.0.1:7788 --workspace . --state-dir ./agent-state
+infx acp --listen 127.0.0.1:7788 --workspace . --state-dir ./agent-state
+infx acp --stdio --listen 127.0.0.1:7788 --workspace . --state-dir ./agent-state
 
 # Connect a stdio-only ACP client to the existing listener
-harnel acp --connect 127.0.0.1:7788
+infx acp --connect 127.0.0.1:7788
 ```
 
-These installed-binary commands correspond to `cargo run --bin harnel -- ...`
+These installed-binary commands correspond to `cargo run --bin infx -- ...`
 when developing from source. Diagnostics go to stderr; ACP stdout contains only
 protocol messages.
 
-The listener is Harnel's loopback TCP transport for newline-delimited ACP
+The listener is INFX's loopback TCP transport for newline-delimited ACP
 JSON-RPC. It is a trusted local control interface and grants access to the
-entire harness. Public binds are rejected. Network framing is a Harnel transport
+entire harness. Public binds are rejected. Network framing is an INFX transport
 extension, not a claim that every ACP client supports TCP natively.
 
 Each attachment initializes independently and owns its request IDs. Replies
@@ -205,8 +255,8 @@ root sessions. Concurrent native subagents remain part of the fx runtime.
 ## Providers and authentication
 
 ```rust,no_run
-# async fn example(harness: harnel::Harness) -> harnel::Result<()> {
-use harnel::Provider;
+# async fn example(harness: infx::Harness) -> infx::Result<()> {
+use infx::Provider;
 
 // Validate, persist, and activate a BYOK URL/key pair.
 harness.configure_provider("https://your-provider.example/v1", "your-key").await?;
@@ -239,7 +289,7 @@ device credential is never part of these snapshots. Final status remains
 observable after completion.
 
 To use a browser callback explicitly, call
-`login_with_method(provider, harnel::LoginMethod::Browser)` or pass
+`login_with_method(provider, infx::LoginMethod::Browser)` or pass
 `"method":"browser"` over ACP. Grok's browser flow additionally accepts a
 manual callback code when `acceptsManualCode` is true. This is separate from
 entering a device code on the provider website. The application controls
@@ -261,7 +311,7 @@ credential directories.
 Implement `Tool::spec` and `Tool::execute`, then register the tool on the builder:
 
 ```rust,no_run
-use harnel::{json, Result, tool::{BoxFuture, Tool, ToolCall, ToolOutput, ToolSpec}};
+use infx::{json, Result, tool::{BoxFuture, Tool, ToolCall, ToolOutput, ToolSpec}};
 
 struct Inventory;
 impl Tool for Inventory {
@@ -294,7 +344,7 @@ executor. Built-in executor names cannot be replaced by application tools.
 
 ## Native build options
 
-Applications depend on `harnel`; the five platform crates are internal
+Applications depend on `infx`; the five platform crates are internal
 implementation details. A repository checkout needs
 `python3 scripts/prepare-native.py` once to stage the pinned release asset.
 Use `--target <rust-target>` when preparing a different compilation target.
@@ -310,8 +360,8 @@ cargo build --no-default-features --features build-from-source
 
 The source feature takes precedence if Cargo feature unification also enables
 `prebuilt`; disable default features to avoid fetching the platform package.
-`HARNEL_FX_SOURCE` selects an explicit fx source checkout when source building.
-`HARNEL_FX_LIB_DIR` selects an explicit developer-owned static library directory;
+`INFX_FX_SOURCE` selects an explicit fx source checkout when source building.
+`INFX_FX_LIB_DIR` selects an explicit developer-owned static library directory;
 use `--no-default-features` with this override to avoid the prebuilt dependency.
 Its target and C ABI must match the SDK. A library built for another target or
 CRT is not interchangeable, even when its exported C symbols have the same names.
@@ -384,19 +434,19 @@ The verifier assembles all seven `.crate` files, checks package builds through a
 local registry substitute, and runs an ordinary consumer and the packaged CLI
 offline with Zig disabled. It writes the verified artifacts to
 `target/verified-packages`. No command above publishes a crate. Publish the five
-platform crates before `harnel-sys`, then `harnel`, only after release verification.
+platform crates before `infx-sys`, then `infx`, only after release verification.
 After publishing, run `python3 scripts/verify-registry.py` to build and exercise
 a notebook copy with a fresh Cargo cache and actual crates.io dependencies.
 The manually dispatched **Published crate verification** workflow repeats this
 on all five release targets. No registry credentials are needed for that check.
 
-To update the engine release, update `crates/harnel-sys/native-release.json` with
+To update the engine release, update `crates/infx-sys/native-release.json` with
 the release tag and its exact revision, advance `vendor/fx` to that revision,
 and run `python3 scripts/prepare-native.py --all --record`. Review the resulting
 checksums and repeat package and platform CI before publication.
 
-The workspace separates the safe SDK (`crates/harnel`), native ownership/build
-boundary (`crates/harnel-sys`), and the independently versioned engine
+The workspace separates the safe SDK (`crates/infx`), native ownership/build
+boundary (`crates/infx-sys`), and the independently versioned engine
 (`vendor/fx`). Read [AGENTS.md](AGENTS.md) before contributing. Engine commits
 must be published before the parent repository advances its submodule pointer.
 

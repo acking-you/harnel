@@ -1,0 +1,117 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640" role="img" aria-labelledby="title desc">
+  <title id="title">INFX</title>
+  <desc id="desc">INFX: embed an agent like a database. A native agent engine, powered by fx, linked into any application.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0A0F1E"/>
+      <stop offset="1" stop-color="#111833"/>
+    </linearGradient>
+    <radialGradient id="glow-left" cx="0.28" cy="0.42" r="0.45">
+      <stop offset="0" stop-color="#FF6A3D" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#FF6A3D" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow-right" cx="0.77" cy="0.58" r="0.32">
+      <stop offset="0" stop-color="#7C5CFF" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#7C5CFF" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFB547"/>
+      <stop offset="0.55" stop-color="#FF6A3D"/>
+      <stop offset="1" stop-color="#FF3D81"/>
+    </linearGradient>
+    <linearGradient id="chip" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1D2442"/>
+      <stop offset="1" stop-color="#141A33"/>
+    </linearGradient>
+    <pattern id="dots" width="32" height="32" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.2" fill="#FFFFFF" fill-opacity="0.06"/>
+    </pattern>
+    <filter id="blur" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="14"/>
+    </filter>
+    <clipPath id="frame">
+      <rect width="1280" height="640" rx="28"/>
+    </clipPath>
+  </defs>
+
+  <g clip-path="url(#frame)">
+    <rect width="1280" height="640" fill="url(#bg)"/>
+    <rect width="1280" height="640" fill="url(#dots)"/>
+    <rect width="1280" height="640" fill="url(#glow-left)"/>
+    <rect width="1280" height="640" fill="url(#glow-right)"/>
+
+    <!-- Wordmark: IN in light ink, FX in the accent gradient. -->
+    <g fill="#E8ECF6">
+      <rect x="96" y="150" width="32" height="170" rx="3"/>
+      <rect x="168" y="150" width="32" height="170" rx="3"/>
+      <rect x="272" y="150" width="32" height="170" rx="3"/>
+      <polygon points="168,150 204,150 304,320 268,320"/>
+    </g>
+    <g fill="url(#accent)">
+      <rect x="344" y="150" width="32" height="170" rx="3"/>
+      <rect x="344" y="150" width="118" height="32" rx="3"/>
+      <rect x="344" y="222" width="98" height="30" rx="3"/>
+      <polygon points="494,150 532,150 638,320 600,320"/>
+      <polygon points="600,150 638,150 532,320 494,320"/>
+    </g>
+    <!-- The X keeps going: rays past the letterform. -->
+    <g stroke="url(#accent)" stroke-width="3" stroke-linecap="round" stroke-dasharray="2 12" fill="none" opacity="0.75">
+      <line x1="504" y1="138" x2="468" y2="80"/>
+      <line x1="628" y1="138" x2="664" y2="80"/>
+      <line x1="504" y1="332" x2="482" y2="368"/>
+      <line x1="628" y1="332" x2="650" y2="368"/>
+    </g>
+
+    <text x="98" y="384" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="20" fill="#8A96B4" letter-spacing="1">/ˈɪn.fɪks/  ·  in + fx  ·  infix</text>
+
+    <text x="96" y="466" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="42" font-weight="700" fill="#F4F6FB">Embed an agent like a database.</text>
+    <text x="98" y="512" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="22" fill="#A9B3CC">A native agent engine you link into any app.</text>
+    <text x="98" y="544" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="22" fill="#A9B3CC">Rust SDK and ACP on one shared runtime, powered by fx.</text>
+
+    <!-- Host application window with fx linked inside. -->
+    <g>
+      <rect x="784" y="112" width="400" height="416" rx="20" fill="#10162B" stroke="#2A3556" stroke-width="2"/>
+      <line x1="784" y1="154" x2="1184" y2="154" stroke="#2A3556" stroke-width="2"/>
+      <circle cx="810" cy="133" r="6" fill="#FF5F57"/>
+      <circle cx="830" cy="133" r="6" fill="#FEBC2E"/>
+      <circle cx="850" cy="133" r="6" fill="#28C840"/>
+      <text x="984" y="139" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="15" fill="#6F7B9A">your app</text>
+
+      <g fill="#2A3556">
+        <rect x="812" y="182" width="150" height="10" rx="5"/>
+        <rect x="972" y="182" width="90" height="10" rx="5"/>
+        <rect x="830" y="204" width="210" height="10" rx="5"/>
+        <rect x="830" y="226" width="120" height="10" rx="5"/>
+        <rect x="960" y="226" width="140" height="10" rx="5"/>
+      </g>
+
+      <rect x="890" y="270" width="188" height="150" rx="18" fill="url(#accent)" opacity="0.55" filter="url(#blur)"/>
+      <g stroke="#3A4670" stroke-width="4" stroke-linecap="round">
+        <line x1="870" y1="296" x2="890" y2="296"/>
+        <line x1="870" y1="322" x2="890" y2="322"/>
+        <line x1="870" y1="348" x2="890" y2="348"/>
+        <line x1="870" y1="374" x2="890" y2="374"/>
+        <line x1="870" y1="400" x2="890" y2="400"/>
+        <line x1="1078" y1="296" x2="1098" y2="296"/>
+        <line x1="1078" y1="322" x2="1098" y2="322"/>
+        <line x1="1078" y1="348" x2="1098" y2="348"/>
+        <line x1="1078" y1="374" x2="1098" y2="374"/>
+        <line x1="1078" y1="400" x2="1098" y2="400"/>
+      </g>
+      <rect x="890" y="270" width="188" height="150" rx="18" fill="url(#chip)" stroke="url(#accent)" stroke-width="3"/>
+      <text x="984" y="368" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="64" font-weight="700" fill="url(#accent)">fx</text>
+      <text x="984" y="402" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="13" fill="#8A96B4" letter-spacing="2">IN-PROCESS</text>
+
+      <g fill="#2A3556">
+        <rect x="812" y="452" width="110" height="10" rx="5"/>
+        <rect x="932" y="452" width="170" height="10" rx="5"/>
+        <rect x="830" y="474" width="180" height="10" rx="5"/>
+        <rect x="812" y="496" width="90" height="10" rx="5"/>
+      </g>
+    </g>
+
+    <line x1="96" y1="584" x2="1184" y2="584" stroke="#1F2846" stroke-width="2"/>
+    <text x="96" y="612" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="15" fill="#6F7B9A" letter-spacing="0.5">cargo add infx</text>
+    <text x="1184" y="612" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="15" fill="#6F7B9A" letter-spacing="0.5">Linux · macOS · Windows   |   BYOK · Codex · Grok   |   no Zig, no daemon</text>
+  </g>
+</svg>

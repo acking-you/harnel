@@ -127,7 +127,7 @@ async def request(write, read, number, method, params):
 
 async def acp(binary, root, environment):
     process = await asyncio.create_subprocess_exec(
-        str(binary), cwd=root, env={**environment, "HARNEL_LISTEN": "127.0.0.1:0"},
+        str(binary), cwd=root, env={**environment, "INFX_LISTEN": "127.0.0.1:0"},
         stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE, limit=1024 * 1024, **process_options())
     try:
@@ -170,7 +170,7 @@ def examples(directory, root, environment, server):
     session = next(line.removeprefix("Session: ") for line in first.stderr.splitlines() if line.startswith("Session: "))
     server.mode = "resume"
     second = run(binary("sessions"), ["What is my project called?"], root,
-                 {**environment, "HARNEL_SESSION_ID": session})
+                 {**environment, "INFX_SESSION_ID": session})
     assert f"Session: {session}" in second.stderr
     server.mode = "inventory"
     assert run(binary("custom_tool"), [], root, environment).stdout.strip() == "Seven keyboards are available."
@@ -206,7 +206,7 @@ def notebook(binary, root, environment, server):
     assert f"Session: {session}" in second.stderr, second.stderr
     assert "Read launch.md and summarize the launch." in json.dumps(server.requests[-1]["input"])
     assert "Maya" in second.stdout, second.stdout
-    assert (Path(environment["HARNEL_STATE_DIR"]) / ".fx/sessions" / session / "session.json").is_file()
+    assert (Path(environment["INFX_STATE_DIR"]) / ".fx/sessions" / session / "session.json").is_file()
     print(first.stdout.strip())
     print(first.stderr.strip())
     print("Notebook passed: Markdown input, native Rust tool round trip, streamed answer, process restart, saved conversation.")
@@ -222,12 +222,12 @@ def main():
     thread = threading.Thread(target=server.serve_forever)
     thread.start()
     try:
-        with tempfile.TemporaryDirectory(prefix="harnel-example-") as temporary:
+        with tempfile.TemporaryDirectory(prefix="infx-example-") as temporary:
             root = Path(temporary)
-            environment = {key: value for key, value in os.environ.items() if not key.startswith("HARNEL_")}
-            environment.update(HARNEL_MODEL="openai/gpt-5", HARNEL_API_KEY="synthetic-fixture-key",
-                               HARNEL_BASE_URL=f"http://127.0.0.1:{server.server_port}/v1",
-                               HARNEL_STATE_DIR=str(root / "profile"))
+            environment = {key: value for key, value in os.environ.items() if not key.startswith("INFX_")}
+            environment.update(INFX_MODEL="openai/gpt-5", INFX_API_KEY="synthetic-fixture-key",
+                               INFX_BASE_URL=f"http://127.0.0.1:{server.server_port}/v1",
+                               INFX_STATE_DIR=str(root / "profile"))
             if options.examples:
                 examples(options.examples.resolve(), root, environment, server)
             else:

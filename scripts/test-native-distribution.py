@@ -23,7 +23,7 @@ class ReleaseAssets(unittest.TestCase):
         original = prepare.ROOT
         prepare.ROOT = self.root
         self.addCleanup(setattr, prepare, "ROOT", original)
-        self.package = self.root / "crates" / f"harnel-native-{TARGET}"
+        self.package = self.root / "crates" / f"infx-native-{TARGET}"
         self.package.mkdir(parents=True)
         self.library = b"test static archive"
         self.release = {"tag": "v0.0.8", "revision": "a" * 40, "abi_version": 1, "targets": {}}

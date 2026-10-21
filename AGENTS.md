@@ -2,7 +2,7 @@
 
 ## Product contract
 
-Harnel is an embeddable Rust agent harness backed by the fx Zig runtime. Its
+INFX is an embeddable Rust agent harness backed by the fx Zig runtime. Its
 purpose is to make an agent as easy to embed as a database. Keep the public API
 small, typed, and useful without requiring a separate fx installation.
 
@@ -11,15 +11,15 @@ written in English. Document actual behavior separately from planned work.
 
 ## Ownership
 
-- `crates/harnel` owns safe Rust APIs, shared control, and ACP attachments.
-- `crates/harnel-sys` owns the native ABI declarations and build integration.
+- `crates/infx` owns safe Rust APIs, shared control, and ACP attachments.
+- `crates/infx-sys` owns the native ABI declarations and build integration.
 - `vendor/fx` is an independent Git submodule. Follow its nearest `AGENTS.md`.
   Engine behavior belongs there, including the agent loop, tools, providers,
   authentication, compaction, and durable session semantics.
-- `crates/harnel/examples` contains packaged SDK examples. `examples/notebook`
+- `crates/infx/examples` contains packaged SDK examples. `examples/notebook`
   is an independent application with a crates.io dependency, outside the SDK
   workspace. Both use the native engine rather than alternate implementations.
-- `crates/harnel-native-*` own target-specific release payloads. They do not
+- `crates/infx-native-*` own target-specific release payloads. They do not
   compile fx or download artifacts in consumer builds.
 - Build and release automation belongs in `xtask` or `scripts`.
 
@@ -78,10 +78,10 @@ revision, ABI, target, and checksums explicit in the release lock. Stage payload
 through `scripts/prepare-native.py`; never commit generated library archives.
 
 Keep source builds explicit and test compiler provisioning independently.
-`HARNEL_OFFLINE` must prevent automatic compiler downloads. Do not mutate the
+`INFX_OFFLINE` must prevent automatic compiler downloads. Do not mutate the
 host PATH or install compilers globally. Before publication, run
 `scripts/verify-packages.py` and the no-Zig native matrix on the exact revision.
-The registry dependency order is platform crates, harnel-sys, then harnel.
+The registry dependency order is platform crates, infx-sys, then infx.
 
 Keep the documented examples executable: build them and run
 `scripts/smoke-examples.py --examples target/debug/examples`. OAuth examples

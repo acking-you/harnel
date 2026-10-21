@@ -1,4 +1,4 @@
-use harnel::{
+use infx::{
     Error, Result, json,
     tool::{BoxFuture, Tool, ToolCall, ToolOutput, ToolSpec},
 };

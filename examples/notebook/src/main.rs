@@ -1,6 +1,6 @@
 mod notebook;
 
-use harnel::{Error, Event, Harness, Result, Session};
+use infx::{Error, Event, Harness, Result, Session};
 use notebook::Notebook;
 use std::{
     io::{self, Write},
@@ -51,19 +51,19 @@ async fn main() -> Result<()> {
     let args: Vec<_> = std::env::args().skip(1).collect();
     if !(2..=3).contains(&args.len()) {
         return Err(Error::Invalid(
-            "Usage: harnel-notebook <notes-directory> <question> [session-id]".into(),
+            "Usage: infx-notebook <notes-directory> <question> [session-id]".into(),
         ));
     }
     let directory = PathBuf::from(&args[0]).canonicalize()?;
     let notebook = Notebook::load(&directory)?;
-    let profile = std::env::var_os("HARNEL_STATE_DIR")
+    let profile = std::env::var_os("INFX_STATE_DIR")
         .map(PathBuf::from)
-        .unwrap_or_else(|| directory.join(".harnel-state"));
+        .unwrap_or_else(|| directory.join(".infx-state"));
     let harness = Harness::builder(&directory)
         .state_dir(profile)
-        .model(required("HARNEL_MODEL")?)
-        .base_url(required("HARNEL_BASE_URL")?)
-        .api_key(required("HARNEL_API_KEY")?)
+        .model(required("INFX_MODEL")?)
+        .base_url(required("INFX_BASE_URL")?)
+        .api_key(required("INFX_API_KEY")?)
         .instructions(notebook.instructions())
         .native_tools(false)
         .tool(notebook)
@@ -76,11 +76,11 @@ async fn main() -> Result<()> {
         };
         eprintln!("Session: {}", session.id());
         eprintln!("Native revision: {}", harness.native_revision());
-        let listener = match std::env::var("HARNEL_LISTEN") {
+        let listener = match std::env::var("INFX_LISTEN") {
             Ok(address) => {
                 let address = address
                     .parse()
-                    .map_err(|_| Error::Invalid("Invalid HARNEL_LISTEN address".into()))?;
+                    .map_err(|_| Error::Invalid("Invalid INFX_LISTEN address".into()))?;
                 let listener = harness.listen(address).await?;
                 eprintln!("ACP listening on {}", listener.local_addr());
                 Some(listener)

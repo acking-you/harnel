@@ -12,7 +12,7 @@ import tempfile
 import urllib.request
 
 ROOT = Path(__file__).resolve().parents[1]
-LOCK = ROOT / "crates/harnel-sys/native-release.json"
+LOCK = ROOT / "crates/infx-sys/native-release.json"
 TARGETS = [
     "x86_64-unknown-linux-gnu", "aarch64-unknown-linux-gnu",
     "x86_64-apple-darwin", "aarch64-apple-darwin", "x86_64-pc-windows-msvc",
@@ -40,7 +40,7 @@ def stage(target, release, directory, record):
         raise ValueError(f"Native archive checksum mismatch: {target}")
     library = "lib/fx_core.lib" if "windows" in target else "lib/libfx_core.a"
     allowed = {library, "include/fx.h", "manifest.json", "LICENSE", "THIRD_PARTY_NOTICES.md"}
-    package = ROOT / "crates" / f"harnel-native-{target}"
+    package = ROOT / "crates" / f"infx-native-{target}"
     with tempfile.TemporaryDirectory(prefix="stage-", dir=package) as temporary:
         staged = Path(temporary)
         seen = set()

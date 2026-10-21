@@ -7,7 +7,7 @@ import sys
 
 root = pathlib.Path(__file__).resolve().parents[1]
 source = root / "vendor/fx"
-destination = root / "crates/harnel-sys/native"
+destination = root / "crates/infx-sys/native"
 
 
 def git(*arguments):
@@ -32,4 +32,4 @@ except Exception:
     shutil.rmtree(destination)
     raise
 print(f"Staged fx {revision} in {destination}")
-print("Run cargo package -p harnel-sys to verify the source package. No publication was performed.")
+print("Run cargo package -p infx-sys to verify the source package. No publication was performed.")
