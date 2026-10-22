@@ -11,6 +11,11 @@ or Git submodule. Copy this directory anywhere and run it with Rust 1.85 or
 newer and your platform's normal Rust linker. INFX's default dependency
 includes the matching precompiled native library; Zig is unnecessary.
 
+INFX 0.1.0 is awaiting publication. These standalone commands work after the
+crates are published. Before publication, run `python3 scripts/verify-packages.py`
+from the repository root after preparing the native payloads and source bundle;
+it builds and exercises this application against the assembled packages.
+
 ## Run
 
 ```sh
@@ -36,7 +41,9 @@ cargo run -- notes "Who should handle urgent incidents?" 'the-session-id'
 ```
 
 The application saves state under `notes/.infx-state/.fx/` by default. Set
-`INFX_STATE_DIR` to choose another profile. Use the same notes directory and
+`INFX_STATE_DIR` to choose another profile. To resume a profile created before
+the rename, point it to the old `.harnel-state` directory or move that directory
+to `.infx-state`. Use the same notes directory and
 profile when resuming. Omit the session ID to start a new conversation.
 
 ```sh

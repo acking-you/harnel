@@ -114,7 +114,7 @@ impl Harness {
                 }
                 let id = message.get("id").cloned();
                 if let Some(method) = message["method"].as_str().map(str::to_owned) {
-                    if method.starts_with("_infx/") || method == infx_sys::HOST_TOOL_METHOD {
+                    if method.starts_with("_infx/") || infx_sys::is_host_tool_method(&method) {
                         return Err(Error::Invalid("private control method".into()));
                     }
                     let params = message["params"].take();
