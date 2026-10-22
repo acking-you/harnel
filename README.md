@@ -126,13 +126,10 @@ connections; applications do not need a protocol adapter.
 
 ## Status and requirements
 
-INFX 0.1.0 is prepared as the first release under this name; the crates have
-not yet been published to crates.io. Until publication, use the checkout
-instructions below. The release includes the native runtime integration, Rust
-SDK, ACP transports, and runnable examples. The API is early and may change in
-future 0.x releases. After publication, use `infx = "0.1.0"` in a Rust application
-or install the CLI with `cargo install infx --locked`. See the
-[release checklist](docs/infx-rename-followups.md) for publication and verification.
+INFX 0.1.0 is the first release under this name. It contains the native
+runtime integration, Rust SDK, ACP transports, and runnable examples. The API is
+early and may change in future 0.x releases. Use `infx = "0.1.0"` in a Rust
+application, or install the CLI with `cargo install infx --locked`.
 
 Default builds require Rust 1.85 or newer and the platform linker. They use
 precompiled static libraries from **fx v0.0.10**, selected by Cargo's target.
