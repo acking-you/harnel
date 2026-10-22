@@ -22,18 +22,13 @@ support without staging and testing a newer native release.
 
 ## Remaining publication
 
-As checked on October 21, 2026, none of the seven `infx` crates is published.
-The manifests therefore remain at 0.1.0. The old `harnel` release remains
-available to existing users. Publication requires explicit maintainer
-authorization and successful verification; the rename does not publish or yank
-any crates automatically.
+The maintainer authorized publishing the seven `infx` 0.1.0 crates on
+October 22, 2026, after successful verification. The README and notebook guide
+now describe the released crates; the README embedded in a published crate
+cannot be updated without another crate release. The old `harnel` release
+remains available to existing users and is not yanked.
 
 ### 1. Verify the exact release revision
-
-Once publication is authorized, replace the awaiting-publication notices in
-the README and notebook guide with the release installation instructions
-before committing and verifying the publishing revision. The README embedded
-in a published crate cannot be updated without another crate release.
 
 Publish the fx source commit before a parent gitlink references it. Require the
 parent's CI to pass on Linux GNU and macOS (x86_64/aarch64) and Windows x86_64

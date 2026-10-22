@@ -11,11 +11,6 @@ or Git submodule. Copy this directory anywhere and run it with Rust 1.85 or
 newer and your platform's normal Rust linker. INFX's default dependency
 includes the matching precompiled native library; Zig is unnecessary.
 
-INFX 0.1.0 is awaiting publication. These standalone commands work after the
-crates are published. Before publication, run `python3 scripts/verify-packages.py`
-from the repository root after preparing the native payloads and source bundle;
-it builds and exercises this application against the assembled packages.
-
 ## Run
 
 ```sh
