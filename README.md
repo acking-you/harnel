@@ -119,10 +119,9 @@ need no migration. The notebook default changed to `.infx-state`: to resume
 an existing notebook profile, set `INFX_STATE_DIR` to its previous
 `.harnel-state` directory, or move that directory to `.infx-state`.
 
-The source engine uses `_infx/tool/call` for private host tool callbacks. The
-SDK also recognizes the former method used by the pinned fx v0.0.10 binaries.
-Both methods stay inside the embedding host and are rejected on external ACP
-connections; applications do not need a protocol adapter.
+The engine uses `_infx/tool/call` for private host tool callbacks. The method
+stays inside the embedding host and is rejected on external ACP connections;
+applications do not need a protocol adapter.
 
 ## Status and requirements
 
@@ -132,7 +131,7 @@ early and may change in future 0.x releases. Use `infx = "0.1.0"` in a Rust
 application, or install the CLI with `cargo install infx --locked`.
 
 Default builds require Rust 1.85 or newer and the platform linker. They use
-precompiled static libraries from **fx v0.0.10**, selected by Cargo's target.
+precompiled static libraries from **fx v0.0.11**, selected by Cargo's target.
 No Zig compiler, fx executable, or build-time download script is needed by a
 packaged dependency. Cargo downloads and caches the platform crate along with
 ordinary dependencies; after dependencies are prepared, builds can run offline.

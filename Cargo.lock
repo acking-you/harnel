@@ -268,7 +268,7 @@ dependencies = [
 
 [[package]]
 name = "infx"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "infx-sys",
  "serde",
@@ -280,7 +280,7 @@ dependencies = [
 
 [[package]]
 name = "infx-native-aarch64-apple-darwin"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "serde_json",
  "sha2",
@@ -288,7 +288,7 @@ dependencies = [
 
 [[package]]
 name = "infx-native-aarch64-unknown-linux-gnu"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "serde_json",
  "sha2",
@@ -296,7 +296,7 @@ dependencies = [
 
 [[package]]
 name = "infx-native-x86_64-apple-darwin"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "serde_json",
  "sha2",
@@ -304,7 +304,7 @@ dependencies = [
 
 [[package]]
 name = "infx-native-x86_64-pc-windows-msvc"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "serde_json",
  "sha2",
@@ -312,7 +312,7 @@ dependencies = [
 
 [[package]]
 name = "infx-native-x86_64-unknown-linux-gnu"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "serde_json",
  "sha2",
@@ -320,7 +320,7 @@ dependencies = [
 
 [[package]]
 name = "infx-sys"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "infx-native-aarch64-apple-darwin",
  "infx-native-aarch64-unknown-linux-gnu",

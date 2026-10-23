@@ -46,7 +46,7 @@ async fn listener_refuses_non_loopback_bind() {
 }
 
 #[tokio::test]
-async fn private_host_tool_methods_disconnect_only_the_requesting_peer() {
+async fn private_host_tool_method_disconnects_only_the_requesting_peer() {
     tokio::time::timeout(Duration::from_secs(10), async {
         let root = tempfile::tempdir().unwrap();
         let harness = Harness::builder(root.path()).build().await.unwrap();
@@ -55,16 +55,14 @@ async fn private_host_tool_methods_disconnect_only_the_requesting_peer() {
             .listen("127.0.0.1:0".parse().unwrap())
             .await
             .unwrap();
-        for method in ["_infx/tool/call", "_harnel/tool/call"] {
-            let mut client = Client::connect(listener.local_addr()).await;
-            client.initialize().await;
-            client
-                .send(json!({"jsonrpc":"2.0","id":2,"method":method,"params":{}}))
-                .await;
-            let mut line = String::new();
-            assert_eq!(client.read.read_line(&mut line).await.unwrap(), 0);
-            assert_eq!(session.status().await.unwrap()["state"], "idle");
-        }
+        let mut client = Client::connect(listener.local_addr()).await;
+        client.initialize().await;
+        client
+            .send(json!({"jsonrpc":"2.0","id":2,"method":"_infx/tool/call","params":{}}))
+            .await;
+        let mut line = String::new();
+        assert_eq!(client.read.read_line(&mut line).await.unwrap(), 0);
+        assert_eq!(session.status().await.unwrap()["state"], "idle");
         listener.shutdown().await.unwrap();
         harness.shutdown().await.unwrap();
     })

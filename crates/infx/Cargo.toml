@@ -11,7 +11,7 @@ keywords = ["agent", "harness", "acp", "llm", "sdk"]
 categories = ["api-bindings", "development-tools"]
 
 [dependencies]
-infx-sys = { version = "0.1.0", path = "../infx-sys", default-features = false }
+infx-sys = { version = "0.1.1", path = "../infx-sys", default-features = false }
 serde.workspace = true
 serde_json.workspace = true
 tokio.workspace = true
