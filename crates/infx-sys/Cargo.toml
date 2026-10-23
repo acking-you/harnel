@@ -33,16 +33,16 @@ lzma-rs = { version = "0.3", optional = true }
 zip = { version = "2.4", default-features = false, features = ["deflate"], optional = true }
 
 [target."x86_64-unknown-linux-gnu".dependencies]
-infx-native-x86_64-unknown-linux-gnu = { version = "=0.1.0", path = "../infx-native-x86_64-unknown-linux-gnu", optional = true }
+infx-native-x86_64-unknown-linux-gnu = { version = "=0.1.1", path = "../infx-native-x86_64-unknown-linux-gnu", optional = true }
 
 [target."aarch64-unknown-linux-gnu".dependencies]
-infx-native-aarch64-unknown-linux-gnu = { version = "=0.1.0", path = "../infx-native-aarch64-unknown-linux-gnu", optional = true }
+infx-native-aarch64-unknown-linux-gnu = { version = "=0.1.1", path = "../infx-native-aarch64-unknown-linux-gnu", optional = true }
 
 [target."x86_64-apple-darwin".dependencies]
-infx-native-x86_64-apple-darwin = { version = "=0.1.0", path = "../infx-native-x86_64-apple-darwin", optional = true }
+infx-native-x86_64-apple-darwin = { version = "=0.1.1", path = "../infx-native-x86_64-apple-darwin", optional = true }
 
 [target."aarch64-apple-darwin".dependencies]
-infx-native-aarch64-apple-darwin = { version = "=0.1.0", path = "../infx-native-aarch64-apple-darwin", optional = true }
+infx-native-aarch64-apple-darwin = { version = "=0.1.1", path = "../infx-native-aarch64-apple-darwin", optional = true }
 
 [target."x86_64-pc-windows-msvc".dependencies]
-infx-native-x86_64-pc-windows-msvc = { version = "=0.1.0", path = "../infx-native-x86_64-pc-windows-msvc", optional = true }
+infx-native-x86_64-pc-windows-msvc = { version = "=0.1.1", path = "../infx-native-x86_64-pc-windows-msvc", optional = true }

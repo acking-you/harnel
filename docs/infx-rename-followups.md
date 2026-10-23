@@ -7,18 +7,16 @@
   `git remote set-url origin https://github.com/acking-you/infx.git`.
 - Crates, directories, the CLI, environment variables, ACP metadata, scripts,
   CI, and public links use `infx`.
-- The fx source sends private host tool callbacks as `_infx/tool/call`.
-  `infx_sys::is_host_tool_method` also accepts the former method from the
-  immutable fx v0.0.10 prebuilt libraries. Both names are blocked on external
-  ACP connections. This compatibility is intentional, not an unfinished
-  textual rename.
+- fx sends private host tool callbacks as `_infx/tool/call`, which is blocked
+  on external ACP connections. INFX 0.1.0 also accepted the former
+  `_harnel/tool/call` from the fx v0.0.10 prebuilt libraries; the repository
+  removed that compatibility when it moved to fx v0.0.11.
 - The README and notebook guide explain how to keep using an existing
   `.harnel-state` profile with `INFX_STATE_DIR`.
 
-The release lock still pins the original fx v0.0.10 binaries and checksums.
-The submodule and bundled source include the callback rename; the SDK supports
-both engine versions. Do not edit release checksums or remove legacy callback
-support without staging and testing a newer native release.
+The repository's release lock and submodule pin fx v0.0.11 (revision
+`baa53168`); see **fx v0.0.11 native release** below. The published 0.1.0
+crates still contain fx v0.0.10.
 
 ## Publication
 
@@ -30,7 +28,7 @@ fx submodule at `76e507a6` and the prebuilt fx v0.0.10 libraries at `8d7653db`.
   `byok` before publication, so the gitlink references a published commit.
 - Parent CI passed on all five targets for that exact revision, in prebuilt,
   source, and packaged-consumer jobs (run 39792712979). The macOS aarch64
-  prebuilt job passed on its second attempt; see the native shell item below.
+  prebuilt job passed on its second attempt; see **fx v0.0.11 native release**.
 - `verify-packages.py` passed on that revision before publication.
 - After publication, `verify-registry.py` passed on aarch64 macOS with the
   Xcode 27 linker, and **Published crate verification** passed on all five
@@ -107,30 +105,39 @@ Dispatch **Published crate verification**, which runs all five target platforms
 with fresh Cargo caches and real crates.io dependencies. Only after it passes,
 record publication as verified in this checklist.
 
-## Next native release
+## fx v0.0.11 native release
 
-These items are planned; none is implemented yet. They all require a new fx
-release staged for all five targets. Because 0.1.0 is published, increment the
-Rust package versions for that release.
+The planned native release is staged in the repository; INFX 0.1.1 is not
+published.
 
-- **Retire the former callback.** When an fx release containing
-  `_infx/tool/call` is available, update `crates/infx-sys/native-release.json`
-  with its real tag and revision, advance the submodule, and stage the checked
-  assets with `python3 scripts/prepare-native.py --all --record`. Update the
-  documented fx version. Only then remove the former method from the native
-  adapter and adjust its ACP isolation test.
-- **Align macOS archive members.** In the fx v0.0.10 macOS `libfx_core.a`, the
-  `libfx_core_zcu.o` member data starts at an offset that is not 8-byte
-  aligned. The Xcode 27 linker ignores that member when it links the archive
-  directly, so `cargo test -p infx-sys` fails to link with Xcode 27. Dependent
-  crates link correctly because rustc re-archives the bundled objects, which
-  `verify-registry.py` confirmed with Xcode 27. Produce aligned archives and
-  link `infx-sys` tests with Xcode 27 before recording the release.
-- **Investigate a native shell failure.** `native_shell_executes_without_an_fx_process`
-  failed once on the macOS aarch64 prebuilt job (run 39792712979, attempt 1):
-  the turn returned JSON-RPC `-32603` with message `Unexpected`, meaning a
-  system call's unexpected errno escaped the fx prompt worker. It passed on
-  rerun and in 400 local runs on aarch64 macOS. Identify the failing call in
-  fx and report such failures as a tool error instead of failing the turn.
+- **Native shell failure.** The `-32603 Unexpected` in run 39792712979 was not
+  a shell failure. A diagnostic build reproduced it under compile-time CPU
+  contention, also in tests that never run a shell. Zig 0.16's POSIX
+  `connect` retries `connect(2)` after `EINTR`; a stray `SIGIO` from
+  `std.Io.Threaded` cancellation interrupted a loopback connection that then
+  completed, so the retry failed with `EISCONN`, which release builds report
+  as `error.Unexpected`. fx treated that request-open failure as terminal.
+  acking-you/fx#48 reports it as the retryable `ConnectionSetupFailed`, so the
+  agent retries the model request.
+- **Spurious bounded deadlines.** Pre-release verification found a second
+  failure from the same signals: `Event.waitTimeout` reports any wakeup as
+  `Timeout`, so OAuth device-code polls failed with `Timeout` about one second
+  into `tests/auth.rs` (14 of 480 stressed runs). acking-you/fx#49 re-checks
+  the clock before a deadline wins; the same stress then passed 480 of 480.
+- **Aligned macOS archives.** Zig's archiver aligned members to two bytes.
+  acking-you/fx#47 re-archives Darwin `libfx` with `zig ar --format=darwin`,
+  and `package-native.py` rejects unaligned members. `cargo test -p infx-sys`
+  now links with the Xcode 27 linker (ld-27037); with v0.0.10 it fails.
+- **Release.** Each fx PR passed Full CI on its exact head (runs 39917056357,
+  39920411373, 39928061870) and release PR acking-you/fx#50 passed run
+  39928355743. Release run 39942494600 tagged `v0.0.11` at `baa53168` and
+  published the CLI archives and all five native libraries with checksum files.
+- **INFX.** `prepare-native.py --all --record` staged and recorded all five
+  targets; the submodule points to `baa53168`. The SDK no longer accepts
+  `_harnel/tool/call`, and the ACP isolation test covers `_infx/tool/call`.
+  The Rust packages are version 0.1.1.
 
-Run the same source, prebuilt, package, and registry checks for that release.
+Before publishing 0.1.1, follow **Release procedure** on the exact parent
+revision: CI on all five targets, `verify-packages.py`, publication with
+maintainer authorization, then `verify-registry.py` and **Published crate
+verification**.

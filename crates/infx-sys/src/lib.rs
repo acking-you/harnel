@@ -29,12 +29,9 @@ unsafe extern "C" {
 /// Private JSON-RPC request used by the native engine to run a host tool.
 pub const HOST_TOOL_METHOD: &str = "_infx/tool/call";
 
-/// Recognize host tool requests from both current sources and fx v0.0.10.
-///
-/// The pinned prebuilt release still uses the former name. Keep compatibility
-/// at this native boundary so source and prebuilt builds share SDK behavior.
+/// Recognize the native engine's private host tool request.
 pub fn is_host_tool_method(method: &str) -> bool {
-    matches!(method, HOST_TOOL_METHOD | "_harnel/tool/call")
+    method == HOST_TOOL_METHOD
 }
 
 #[derive(Debug)]

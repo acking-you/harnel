@@ -3,7 +3,7 @@
 Native fx ownership and build integration for [INFX](https://github.com/acking-you/infx).
 Applications normally depend on `infx` instead of this crate.
 
-Default builds statically link a pinned fx v0.0.10 release from a target-specific
+Default builds statically link a pinned fx v0.0.11 release from a target-specific
 platform crate. Linux GNU and macOS support x86_64/aarch64; Windows supports
 x86_64 MSVC. Consumers need their normal Rust linker and platform SDK, with no
 Zig installation or build-script network access. Platform packages validate
@@ -23,7 +23,5 @@ fetching the platform crate. Its ABI, target, and CRT must match the application
 
 The ABI wrapper owns every handle and joins native workers before destruction.
 
-Host tool callbacks use the private `_infx/tool/call` method in the bundled
-source. The SDK also accepts the former method emitted by the pinned fx v0.0.10
-prebuilt libraries. Both stay inside the host and are rejected on external ACP
-connections.
+Host tool callbacks use the private `_infx/tool/call` method. It stays inside
+the host and is rejected on external ACP connections.
